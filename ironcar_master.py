@@ -33,6 +33,14 @@ file_count = 0
 
 ct = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
 save_folder = os.path.join('datasets/', str(ct))
+image_logs = 'images_logs'
+predictions_logs = 'predictions_logs'
+
+if not os.path.exists(image_logs):
+    os.makedirs(image_logs)
+
+if not os.path.exists(predictions_logs):
+    os.makedirs(predictions_logs)
 
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
@@ -51,6 +59,28 @@ current_model = None
 max_speed_rate = 0.5
 model_loaded = False
 
+# --------------- Set helper functions --------------
+
+def set_speed(gas):
+    global pwm
+    pwm.set_pwm(commands['gas'],0,int(gas * (commands['drive_max'] - commands['neutral']) + commands['neutral']))
+
+
+def set_direction(direction):
+    global pwm
+    pwm.set_pwm(commands['direction'], 0, int(direction * (commands['right'] - commands['left'])/2. + commands['straight']))
+
+def stop_car():
+    global pwm
+    pwm.set_pwm(commands['gas'],0,commands['neutral'])
+
+def brake_car():
+    global pwm
+    pwm.set_pwm(commands['gas'], 0, commands['stop'])
+
+def straight_dir():
+    global pwm
+    pwm.set_pwm(commands['direction'], 0, commands['straight'])
 
 # ---------------- Different modes functions ----------------
 
@@ -79,11 +109,11 @@ def autopilot(img):
     local_gas = get_gas_from_dir(curr_dir) * (max_speed_rate)
     #local_gas = 0.00002#print(local_gas)
 
-    pwm.set_pwm(commands['direction'], 0, int(local_dir * (commands['right'] - commands['left'])/2. + commands['straight']))
+    set_direction(local_dir)
     if state == "started":
-        pwm.set_pwm(commands['gas'], 0, int(local_gas * (commands['drive_max'] - commands['neutral']) + commands['neutral']))
+        set_speed(local_gas)
     else:
-        pwm.set_pwm(commands['gas'], 0, commands['neutral'])
+        stop_car()
 
 
 def dirauto(img):
@@ -98,8 +128,7 @@ def dirauto(img):
     index_class = prediction.index(max(prediction))
 
     local_dir = -1 + 2 * float(index_class) / float(len(prediction) - 1)
-    pwm.set_pwm(commands['direction'], 0,
-                int(local_dir * (commands['right'] - commands['left']) / 2. + commands['straight']))
+    set_direction(local_dir)
 
 
 def training(img):
@@ -158,7 +187,7 @@ def on_switch_mode(data):
         state = "stopped"
         socketIO.emit('starter')
     # Stop the gas before switching mode
-    pwm.set_pwm(commands['gas'], 0 , commands['neutral'])
+    stop_car()
     mode = data
     if data == "dirauto":
         socketIO.off('dir')
@@ -187,7 +216,7 @@ def on_switch_mode(data):
         socketIO.emit('msg2user', ' Resting')
     print('switched to mode : ', data)
     # Make sure we stop even if the previous mode sent a last command before switching.
-    pwm.set_pwm(commands['gas'], 0 , commands['neutral'])
+    stop_car()
 
 
 def on_start(data):
@@ -201,10 +230,10 @@ def on_dir(data):
     curr_dir = float(data)
     if curr_dir == 0:
         #print(commands['straight'])
-        pwm.set_pwm(commands['direction'], 0 , commands['straight'])
+        straight_dir()
     else:
         #print(int(curr_dir * (commands['right'] - commands['left'])/2. + commands['straight']))
-        pwm.set_pwm(commands['direction'], 0 , int(curr_dir * (commands['right'] - commands['left'])/2. + commands['straight']))
+        set_direction(curr_dir)
 
 
 def on_gas(data):
@@ -212,12 +241,12 @@ def on_gas(data):
     curr_gas = float(data) * max_speed_rate
     print('THIS IS THE CURRENT GAS ', curr_gas)
     if curr_gas < 0:
-        pwm.set_pwm(commands['gas'], 0, commands['stop'])
+        brake_car()
     elif curr_gas == 0:
-        pwm.set_pwm(commands['gas'], 0, commands['stop'])
+        stop_car()
     else:
     #    print(curr_gas * (commands['drive_max'] - commands['drive']) + commands['neutral'])
-        pwm.set_pwm(commands['gas'], 0, int(curr_gas * (commands['drive_max']-commands['neutral']) + commands['neutral']))
+        set_speed(curr_gas)
     
 
 def on_max_speed_update(new_max_speed):

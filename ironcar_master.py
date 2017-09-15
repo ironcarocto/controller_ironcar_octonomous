@@ -25,6 +25,8 @@ cam_resolution = (250, 150)
 
 commands_json_file = "commands.json"
 
+file_count = 0
+
 # ***********************************************************************************
 
 # --------------------------- SETUP ------------------------
@@ -42,7 +44,7 @@ with open(commands_json_file) as json_file:
 pwm = Adafruit_PCA9685.PCA9685()
 pwm.set_pwm_freq(60)
 
-state, mode, running = "stop", "resting",  True
+state, mode, running = "stop", "training",  True
 n_img = 0
 curr_dir, curr_gas = 0, 0
 current_model = None
@@ -62,32 +64,36 @@ def default_call(img):
 
 
 def autopilot(img):
-    global model, graph, state, max_speed_rate
+    global model, graph, state, max_speed_rate, file_count
 
     img = np.array([img[80:, :, :]])
     with graph.as_default():
         pred = model.predict(img)
         print('pred : ', pred)
+        np.save('predictions_log/prediction{}'.format(file_count),pred)
+        file_count += 1
         prediction = list(pred[0])
     index_class = prediction.index(max(prediction))
 
     local_dir = -1 + 2 * float(index_class)/float(len(prediction)-1)
-    local_gas = get_gas_from_dir(curr_dir) * max_speed_rate
+    local_gas = get_gas_from_dir(curr_dir) * (max_speed_rate)
+    #local_gas = 0.00002#print(local_gas)
 
     pwm.set_pwm(commands['direction'], 0, int(local_dir * (commands['right'] - commands['left'])/2. + commands['straight']))
     if state == "started":
-        pwm.set_pwm(commands['gas'], 0, int(local_gas * (commands['drive_max'] - commands['drive']) + commands['drive']))
+        pwm.set_pwm(commands['gas'], 0, int(local_gas * (commands['drive_max'] - commands['neutral']) + commands['neutral']))
     else:
         pwm.set_pwm(commands['gas'], 0, commands['neutral'])
 
 
 def dirauto(img):
-    global model, graph
+    global model, graph, file_count
 
     img = np.array([img[80:, :, :]])
     with graph.as_default():
         pred = model.predict(img)
         print('pred : ', pred)
+        
         prediction = list(pred[0])
     index_class = prediction.index(max(prediction))
 
@@ -110,7 +116,7 @@ def training(img):
 # This function is launched on a separate thread that is supposed to run permanently
 # to get camera pics
 def camera_loop():
-    global state, mode_function, running
+    global state, mode_function, running, file_count
 
     cam = picamera.PiCamera(framerate=fps)
     cam.resolution = cam_resolution
@@ -119,6 +125,7 @@ def camera_loop():
     
     for f in stream:
         img_arr = f.array
+        np.save('images_log/img{}'.format(file_count),img_arr)
         if not running:
             break
         mode_function(img_arr)
@@ -203,13 +210,14 @@ def on_dir(data):
 def on_gas(data):
     global curr_gas, max_speed_rate
     curr_gas = float(data) * max_speed_rate
+    print('THIS IS THE CURRENT GAS ', curr_gas)
     if curr_gas < 0:
         pwm.set_pwm(commands['gas'], 0, commands['stop'])
     elif curr_gas == 0:
-        pwm.set_pwm(commands['gas'], 0, commands['neutral'])
+        pwm.set_pwm(commands['gas'], 0, commands['stop'])
     else:
-        #print(curr_gas * (commands['drive_max'] - commands['drive']) + commands['drive'])
-        pwm.set_pwm(commands['gas'], 0, int(curr_gas * (commands['drive_max']-commands['drive']) + commands['drive']))
+    #    print(curr_gas * (commands['drive_max'] - commands['drive']) + commands['neutral'])
+        pwm.set_pwm(commands['gas'], 0, int(curr_gas * (commands['drive_max']-commands['neutral']) + commands['neutral']))
     
 
 def on_max_speed_update(new_max_speed):

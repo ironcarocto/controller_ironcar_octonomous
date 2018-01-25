@@ -3,7 +3,7 @@ import Adafruit_PCA9685
 from ironcar.setup import load_commands
 
 
-class Car(object):
+class CarControl(object):
     _commands = load_commands()
     NEUTRAL_COMMAND = _commands['neutral']
     MAX_COMMAND = _commands['drive_max']

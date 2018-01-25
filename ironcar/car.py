@@ -1,29 +1,24 @@
 import os
 
 import numpy as np
-import picamera
 import scipy.misc
 import tensorflow as tf
 from keras.models import load_model
 
-from ironcar_master import cam_resolution
 
-
-class State(object):
-    def __init__(self, state, mode, running, car, save_folder, cam_resolution,
-                 socket, models_path,
-                 curr_direction=0, curr_gas=0, model=None, max_speed_rate=0.5,
-                 fps=60):
+class Car(object):
+    def __init__(self, state, mode, running, car_control, save_folder,
+                 socket, models_path, camera,
+                 curr_direction=0, curr_gas=0, model=None, max_speed_rate=0.5):
         self.state = state
         self.mode = mode
         self.running = running
         self.n_img = 0
         self.file_count = 0
         self.save_folder = save_folder
-        self.cam_resolution = cam_resolution
-        self.fps = fps
+        self.camera = camera
 
-        self.car = car
+        self.car_control = car_control
         self.curr_direction = curr_direction
         self.curr_gas = curr_gas
         self.max_speed_rate = max_speed_rate
@@ -40,6 +35,7 @@ class State(object):
     def get_gas_from_direction(self, dir):
         return 0.2
 
+    # -------------------------- Driving Strategies ---------------------
     def default_call(self, img):
         pass
 
@@ -58,11 +54,11 @@ class State(object):
         local_gas = self.get_gas_from_direction(
             self.curr_direction) * self.max_speed_rate
 
-        self.car.set_direction(local_dir)
+        self.car_control.set_direction(local_dir)
         if self.state == "started":
-            self.car.set_speed(local_gas)
+            self.car_control.set_speed(local_gas)
         else:
-            self.car.stop()
+            self.car_control.stop()
 
     def dirauto(self, img):
         img = np.array([img[80:, :, :]])
@@ -74,7 +70,7 @@ class State(object):
         index_class = prediction.index(max(prediction))
 
         local_dir = -1 + 2 * float(index_class) / float(len(prediction) - 1)
-        self.car.set_direction(local_dir)
+        self.car_control.set_direction(local_dir)
 
     def training(self, img):
         image_name = os.path.join(self.save_folder,
@@ -89,24 +85,13 @@ class State(object):
     # ------------------- Main camera loop  ---------------------
     # This function is launched on a separate thread that is supposed to run
     # permanently to get camera pics
-    def camera_loop(self):
-        cam = picamera.PiCamera(framerate=self.fps)
-        cam.resolution = cam_resolution
-        cam_output = picamera.array.PiRGBArray(cam, size=cam_resolution)
-        stream = cam.capture_continuous(cam_output, format="rgb",
-                                        use_video_port=True)
-
-        for f in stream:
-            img_arr = f.array
-            np.save('images_log/img{}'.format(self.file_count), img_arr)
+    def drive_loop(self):
+        for img_arr in self.camera.picture_stream():
             if not self.running:
                 break
             self.mode_function(img_arr)
 
-            cam_output.truncate(0)
-
     # ------------------ SocketIO callbacks-----------------------
-    # This will try to load a model when receiving a callback from the node server
     def on_model_selected(self, model_name):
         if model_name == self.current_model or model_name == -1: return 0
         new_model_path = self.models_path + model_name
@@ -129,7 +114,7 @@ class State(object):
             self.state = "stopped"
             self.socket.emit('starter')
         # Stop the gas before switching mode
-        self.car.stop()
+        self.car_control.stop()
         self.mode = data
         if data == "dirauto":
             self.socket.off('dir')
@@ -161,7 +146,7 @@ class State(object):
             self.socket.emit('msg2user', ' Resting')
         print('switched to mode : ', data)
         # Make sure we stop even if the previous mode sent a last command before switching.
-        self.car.stop()
+        self.car_control.stop()
 
     def on_start(self, data):
         self.state = data
@@ -170,19 +155,19 @@ class State(object):
     def on_dir(self, data):
         self.curr_direction = float(data)
         if self.curr_direction == 0:
-            self.car.straight_dir()
+            self.car_control.straight_dir()
         else:
-            self.car.set_direction(self.curr_direction)
+            self.car_control.set_direction(self.curr_direction)
 
     def on_gas(self, data):
         self.curr_gas = float(data) * self.max_speed_rate
         print('THIS IS THE CURRENT GAS_COMMAND ', self.curr_gas)
         if self.curr_gas < 0:
-            self.car.brake()
+            self.car_control.brake()
         elif self.curr_gas == 0:
-            self.car.stop()
+            self.car_control.stop()
         else:
-            self.car.set_speed(self.curr_gas)
+            self.car_control.set_speed(self.curr_gas)
 
     def on_max_speed_update(self, new_max_speed):
         self.max_speed_rate = new_max_speed

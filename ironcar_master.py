@@ -1,9 +1,6 @@
-import datetime
-import json
 import os
 from threading import Thread
 
-import Adafruit_PCA9685
 import numpy as np
 import picamera
 import picamera.array
@@ -13,13 +10,16 @@ from keras.models import load_model
 from socketIO_client import SocketIO
 
 # *********************************** Parameters ************************************
+from ironcar.connection import Car
+from ironcar.setup import init_folder
+
 models_path = './autopilots/'
 
 fps = 60
 
 cam_resolution = (250, 150)
 
-commands_json_file = "commands.json"
+commands_json_file = "_commands.json"
 
 file_count = 0
 
@@ -27,70 +27,24 @@ file_count = 0
 
 # --------------------------- SETUP ------------------------
 
-ct = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-save_folder = os.path.join('datasets/', str(ct))
-image_logs = 'images_logs'
-predictions_logs = 'predictions_logs'
 
-if not os.path.exists(image_logs):
-    os.makedirs(image_logs)
-
-if not os.path.exists(predictions_logs):
-    os.makedirs(predictions_logs)
-
-if not os.path.exists(save_folder):
-    os.makedirs(save_folder)
-
-with open(commands_json_file) as json_file:
-    commands = json.load(json_file)
-
-# PWM setup
-pwm = Adafruit_PCA9685.PCA9685()
-pwm.set_pwm_freq(60)
+save_folder = init_folder()
 
 state, mode, running = "stop", "training", True
 n_img = 0
-curr_dir, curr_gas = 0, 0
+curr_direction, curr_gas = 0, 0
 current_model = None
 max_speed_rate = 0.5
 model_loaded = False
 
-
-# --------------- Set helper functions --------------
-
-def set_speed(gas):
-    global pwm
-    pwm.set_pwm(commands['gas'], 0, int(
-        gas * (commands['drive_max'] - commands['neutral']) + commands[
-            'neutral']))
-
-
-def set_direction(direction):
-    global pwm
-    pwm.set_pwm(commands['direction'], 0, int(
-        direction * (commands['right'] - commands['left']) / 2. + commands[
-            'straight']))
-
-
-def stop_car():
-    global pwm
-    pwm.set_pwm(commands['gas'], 0, commands['neutral'])
-
-
-def brake_car():
-    global pwm
-    pwm.set_pwm(commands['gas'], 0, commands['stop'])
-
-
-def straight_dir():
-    global pwm
-    pwm.set_pwm(commands['direction'], 0, commands['straight'])
+# --------------- PWM --------------
 
 
 # ---------------- Different modes functions ----------------
+car = Car()
 
 
-def get_gas_from_dir(dir):
+def get_gas_from_direction(dir):
     return 0.2
 
 
@@ -111,14 +65,13 @@ def autopilot(img):
     index_class = prediction.index(max(prediction))
 
     local_dir = -1 + 2 * float(index_class) / float(len(prediction) - 1)
-    local_gas = get_gas_from_dir(curr_dir) * (max_speed_rate)
-    # local_gas = 0.00002#print(local_gas)
+    local_gas = get_gas_from_direction(curr_direction) * max_speed_rate
 
-    set_direction(local_dir)
+    car.set_direction(local_dir)
     if state == "started":
-        set_speed(local_gas)
+        car.set_speed(local_gas)
     else:
-        stop_car()
+        car.stop()
 
 
 def dirauto(img):
@@ -133,13 +86,13 @@ def dirauto(img):
     index_class = prediction.index(max(prediction))
 
     local_dir = -1 + 2 * float(index_class) / float(len(prediction) - 1)
-    set_direction(local_dir)
+    car.set_direction(local_dir)
 
 
 def training(img):
-    global n_img, curr_dir, curr_gas
+    global n_img, curr_direction, curr_gas
     image_name = os.path.join(save_folder, 'frame_' + str(n_img) + '_gas_' +
-                              str(curr_gas) + '_dir_' + str(curr_dir) +
+                              str(curr_gas) + '_dir_' + str(curr_direction) +
                               '_' + '.jpg')
     img_arr = np.array(img[80:, :, :], copy=True)
     scipy.misc.imsave(image_name, img_arr)
@@ -147,8 +100,8 @@ def training(img):
 
 
 # ------------------- Main camera loop  ---------------------
-# This function is launched on a separate thread that is supposed to run permanently
-# to get camera pics
+# This function is launched on a separate thread that is supposed to run
+# permanently to get camera pics
 def camera_loop():
     global state, mode_function, running, file_count
 
@@ -194,7 +147,7 @@ def on_switch_mode(data):
         state = "stopped"
         socketIO.emit('starter')
     # Stop the gas before switching mode
-    stop_car()
+    car.stop()
     mode = data
     if data == "dirauto":
         socketIO.off('dir')
@@ -226,7 +179,7 @@ def on_switch_mode(data):
         socketIO.emit('msg2user', ' Resting')
     print('switched to mode : ', data)
     # Make sure we stop even if the previous mode sent a last command before switching.
-    stop_car()
+    car.stop()
 
 
 def on_start(data):
@@ -236,27 +189,24 @@ def on_start(data):
 
 
 def on_dir(data):
-    global curr_dir
-    curr_dir = float(data)
-    if curr_dir == 0:
-        # print(commands['straight'])
-        straight_dir()
+    global curr_direction
+    curr_direction = float(data)
+    if curr_direction == 0:
+        car.straight_dir()
     else:
-        # print(int(curr_dir * (commands['right'] - commands['left'])/2. + commands['straight']))
-        set_direction(curr_dir)
+        car.set_direction(curr_direction)
 
 
 def on_gas(data):
     global curr_gas, max_speed_rate
     curr_gas = float(data) * max_speed_rate
-    print('THIS IS THE CURRENT GAS ', curr_gas)
+    print('THIS IS THE CURRENT GAS_COMMAND ', curr_gas)
     if curr_gas < 0:
-        brake_car()
+        car.brake()
     elif curr_gas == 0:
-        stop_car()
+        car.stop()
     else:
-        #    print(curr_gas * (commands['drive_max'] - commands['drive']) + commands['neutral'])
-        set_speed(curr_gas)
+        car.set_speed(curr_gas)
 
 
 def on_max_speed_update(new_max_speed):

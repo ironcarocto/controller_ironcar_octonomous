@@ -1,20 +1,16 @@
-from socketIO_client import SocketIO
+import datetime
+import json
+import os
 from threading import Thread
 
-import sys, os, time
-import scipy.misc
-import datetime
-
+import Adafruit_PCA9685
+import numpy as np
 import picamera
 import picamera.array
-
-from Adafruit_BNO055 import BNO055
-import Adafruit_PCA9685
-
-from keras.models import load_model
+import scipy.misc
 import tensorflow as tf
-import numpy as np
-import json
+from keras.models import load_model
+from socketIO_client import SocketIO
 
 # *********************************** Parameters ************************************
 models_path = './autopilots/'
@@ -52,35 +48,44 @@ with open(commands_json_file) as json_file:
 pwm = Adafruit_PCA9685.PCA9685()
 pwm.set_pwm_freq(60)
 
-state, mode, running = "stop", "training",  True
+state, mode, running = "stop", "training", True
 n_img = 0
 curr_dir, curr_gas = 0, 0
 current_model = None
 max_speed_rate = 0.5
 model_loaded = False
 
+
 # --------------- Set helper functions --------------
 
 def set_speed(gas):
     global pwm
-    pwm.set_pwm(commands['gas'],0,int(gas * (commands['drive_max'] - commands['neutral']) + commands['neutral']))
+    pwm.set_pwm(commands['gas'], 0, int(
+        gas * (commands['drive_max'] - commands['neutral']) + commands[
+            'neutral']))
 
 
 def set_direction(direction):
     global pwm
-    pwm.set_pwm(commands['direction'], 0, int(direction * (commands['right'] - commands['left'])/2. + commands['straight']))
+    pwm.set_pwm(commands['direction'], 0, int(
+        direction * (commands['right'] - commands['left']) / 2. + commands[
+            'straight']))
+
 
 def stop_car():
     global pwm
-    pwm.set_pwm(commands['gas'],0,commands['neutral'])
+    pwm.set_pwm(commands['gas'], 0, commands['neutral'])
+
 
 def brake_car():
     global pwm
     pwm.set_pwm(commands['gas'], 0, commands['stop'])
 
+
 def straight_dir():
     global pwm
     pwm.set_pwm(commands['direction'], 0, commands['straight'])
+
 
 # ---------------- Different modes functions ----------------
 
@@ -100,14 +105,14 @@ def autopilot(img):
     with graph.as_default():
         pred = model.predict(img)
         print('pred : ', pred)
-        np.save('predictions_log/prediction{}'.format(file_count),pred)
+        np.save('predictions_log/prediction{}'.format(file_count), pred)
         file_count += 1
         prediction = list(pred[0])
     index_class = prediction.index(max(prediction))
 
-    local_dir = -1 + 2 * float(index_class)/float(len(prediction)-1)
+    local_dir = -1 + 2 * float(index_class) / float(len(prediction) - 1)
     local_gas = get_gas_from_dir(curr_dir) * (max_speed_rate)
-    #local_gas = 0.00002#print(local_gas)
+    # local_gas = 0.00002#print(local_gas)
 
     set_direction(local_dir)
     if state == "started":
@@ -123,7 +128,7 @@ def dirauto(img):
     with graph.as_default():
         pred = model.predict(img)
         print('pred : ', pred)
-        
+
         prediction = list(pred[0])
     index_class = prediction.index(max(prediction))
 
@@ -150,11 +155,12 @@ def camera_loop():
     cam = picamera.PiCamera(framerate=fps)
     cam.resolution = cam_resolution
     cam_output = picamera.array.PiRGBArray(cam, size=cam_resolution)
-    stream = cam.capture_continuous(cam_output, format="rgb", use_video_port=True)
-    
+    stream = cam.capture_continuous(cam_output, format="rgb",
+                                    use_video_port=True)
+
     for f in stream:
         img_arr = f.array
-        np.save('images_log/img{}'.format(file_count),img_arr)
+        np.save('images_log/img{}'.format(file_count), img_arr)
         if not running:
             break
         mode_function(img_arr)
@@ -177,7 +183,8 @@ def on_model_selected(model_name):
         model_loaded = True
         on_switch_mode(mode)
     except OSError:
-        socketIO.emit('msg2user', ' Failed loading model. Please select another one.')
+        socketIO.emit('msg2user',
+                      ' Failed loading model. Please select another one.')
 
 
 def on_switch_mode(data):
@@ -193,7 +200,8 @@ def on_switch_mode(data):
         socketIO.off('dir')
         if model_loaded:
             mode_function = dirauto
-            socketIO.emit('msg2user', ' Direction auto mode. Please control the gas using a keyboard or a gamepad.')
+            socketIO.emit('msg2user',
+                          ' Direction auto mode. Please control the gas using a keyboard or a gamepad.')
         else:
             print("model not loaded")
             socketIO.emit('msg2user', ' Please load a model first')
@@ -202,7 +210,8 @@ def on_switch_mode(data):
         socketIO.off('dir')
         if model_loaded:
             mode_function = autopilot
-            socketIO.emit('msg2user', ' Autopilot mode. Use the start/stop button to free the gas command.')
+            socketIO.emit('msg2user',
+                          ' Autopilot mode. Use the start/stop button to free the gas command.')
         else:
             print("model not loaded")
             socketIO.emit('msg2user', 'Please load a model first')
@@ -210,8 +219,9 @@ def on_switch_mode(data):
         socketIO.on('gas', on_gas)
         socketIO.on('dir', on_dir)
         mode_function = training
-        socketIO.emit('msg2user', ' Training mode. Please use a keyboard or a gamepad for control.')
-    else: 
+        socketIO.emit('msg2user',
+                      ' Training mode. Please use a keyboard or a gamepad for control.')
+    else:
         mode_function = default_call
         socketIO.emit('msg2user', ' Resting')
     print('switched to mode : ', data)
@@ -229,10 +239,10 @@ def on_dir(data):
     global curr_dir
     curr_dir = float(data)
     if curr_dir == 0:
-        #print(commands['straight'])
+        # print(commands['straight'])
         straight_dir()
     else:
-        #print(int(curr_dir * (commands['right'] - commands['left'])/2. + commands['straight']))
+        # print(int(curr_dir * (commands['right'] - commands['left'])/2. + commands['straight']))
         set_direction(curr_dir)
 
 
@@ -245,13 +255,14 @@ def on_gas(data):
     elif curr_gas == 0:
         stop_car()
     else:
-    #    print(curr_gas * (commands['drive_max'] - commands['drive']) + commands['neutral'])
+        #    print(curr_gas * (commands['drive_max'] - commands['drive']) + commands['neutral'])
         set_speed(curr_gas)
-    
+
 
 def on_max_speed_update(new_max_speed):
     global max_speed_rate
     max_speed_rate = new_max_speed
+
 
 # --------------- Starting server and threads ----------------
 mode_function = default_call

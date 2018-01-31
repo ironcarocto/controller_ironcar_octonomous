@@ -28,8 +28,11 @@ class Car(object):
     def set_direction(self, data):
         self.curr_direction = float(data)
         if self.curr_direction == 0:
+            print('THIS IS THE CURRENT DIRECTION COMMAND ', 0)
             self.car_control.straight_dir()
         else:
+            print('THIS IS THE CURRENT DIRECTION COMMAND ',
+                  self.curr_direction)
             self.car_control.set_direction(self.curr_direction)
 
     def set_gas(self, data):

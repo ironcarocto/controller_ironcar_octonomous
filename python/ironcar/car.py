@@ -1,8 +1,7 @@
 class Car(object):
-    def __init__(self, state, running, car_control, logger, curr_direction=0,
+    def __init__(self, state, car_control, logger, curr_direction=0,
                  curr_gas=0, max_speed_rate=0.5):
         self.state = state
-        self.running = running
         self.file_count = 0
         self.logger = logger
 

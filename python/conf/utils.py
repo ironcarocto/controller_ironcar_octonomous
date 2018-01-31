@@ -2,8 +2,6 @@ import datetime
 import json
 import os
 
-from python.ironcar_master import commands_json_file
-
 
 def init_folder():
     ct = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
@@ -22,5 +20,5 @@ def init_folder():
 
 
 def load_commands():
-    with open(commands_json_file) as json_file:
+    with open("commands.json") as json_file:
         return json.load(json_file)

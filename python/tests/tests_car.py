@@ -18,7 +18,7 @@ def create_mock_car_and_pilot():
 
     brain = DrivingModel(models_path=".", logger=logger, model=model,
                          graph=graph)
-    car = Car("started", True, car_control=MagicMock(), logger=logger)
+    car = Car("started", car_control=MagicMock(), logger=logger)
     pilot = Pilot(car,
                   visual_input=camera,
                   driving_modes=AllDrivingModes(socket, car, brain, memory),

@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-import scipy.misc
+import imageio
 
 
 class Memory:
@@ -17,7 +17,7 @@ class Memory:
                     str(curr_direction)))
         image_path = os.path.join(self.save_folder, image_name)
         img_arr = np.array(img[80:, :, :], copy=True)
-        scipy.misc.imsave(image_path, img_arr)
+        imageio.imwrite(image_path, img_arr)
         self.n_img += 1
 
 

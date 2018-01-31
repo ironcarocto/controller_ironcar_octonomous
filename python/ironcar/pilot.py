@@ -20,10 +20,14 @@ class Pilot(object):
     # This function is launched on a separate thread that is supposed to run
     # permanently to get camera pics
     def drive_loop(self):
+        i = 0
         for img_arr in self.visual_input.picture_stream():
             if not self.is_driving:
                 break
             self.drive_from_image(img_arr)
+            i += 1
+            if i % 100 == 0:
+                print("Still driving !")
 
     def drive_from_image(self, img):
         self.current_pilot_mode.drive(img)

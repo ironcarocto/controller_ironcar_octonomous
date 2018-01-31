@@ -30,7 +30,12 @@ class Pilot(object):
                 print("Still driving !")
 
     def drive_from_image(self, img):
-        self.current_pilot_mode.drive(img)
+        try:
+            self.current_pilot_mode.drive(img)
+        except Exception as e:
+            print("Error during driving loop :")
+            print(e)
+            time.sleep(1)
 
     def load_model(self, model_name):
         try:

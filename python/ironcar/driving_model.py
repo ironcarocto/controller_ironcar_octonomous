@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import tensorflow as tf
+import time
 from keras.models import load_model
 
 
@@ -29,6 +30,7 @@ class DrivingModel(object):
             return local_dir, local_gas
         else:
             print("You probably need to load a model ! Just sayin...")
+            time.sleep(1)
             return 0, 0
 
     def get_gas_from_direction(self, direction):

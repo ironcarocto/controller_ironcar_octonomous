@@ -1,6 +1,6 @@
 from conf.utils import init_folder
 
-models_path = './autopilots/'
+models_path = '/home/pi/ironcar/autopilots/'
 fps = 60
 cam_resolution = (256, 160)
 file_count = 0

@@ -33,9 +33,12 @@ class AllDrivingModes(DrivingModes):
 
 class DefaultDrivingMode(object):
     def __init__(self, instructions_stream, car):
+        self.instructions_stream = instructions_stream
         self.car = car
+
+    def engage(self):
         instructions_stream.on('gas', self.car.set_gas)
-        instructions_stream.on('dir', self.car.set_direction)
+        self.instructions_stream.on('dir', self.car.set_direction)
 
     def drive(self, img):
         pass
@@ -49,11 +52,13 @@ class FullAutoPilot(DefaultDrivingMode):
         super().__init__(instructions_stream, car)
         self.car = car
         self.driving_model = driving_model
-        instructions_stream.off('gas')
-        instructions_stream.off('dir')
+
+    def engage(self):
+        self.instructions_stream.off('gas')
+        self.instructions_stream.off('dir')
         message = 'Autopilot mode. ' \
                   'Use the start/stop button to free the gas command.'
-        instructions_stream.emit('msg2user', message)
+        self.instructions_stream.emit('msg2user', message)
 
     def drive(self, img):
         direction = self.car.curr_direction
@@ -72,10 +77,12 @@ class DirectionOnlyAutoPilot(DefaultDrivingMode):
     def __init__(self, instructions_stream, car, driving_model):
         super().__init__(instructions_stream, car)
         self.driving_model = driving_model
-        instructions_stream.off('dir')
+
+    def engage(self):
+        self.instructions_stream.off('dir')
         message = 'Direction auto mode. ' \
                   'Please control the gas using a keyboard or a gamepad.'
-        instructions_stream.emit('msg2user', message)
+        self.instructions_stream.emit('msg2user', message)
 
     def drive(self, img):
         direction = self.car.curr_direction

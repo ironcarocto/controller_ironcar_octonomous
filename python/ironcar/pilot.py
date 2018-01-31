@@ -47,8 +47,9 @@ class Pilot(object):
         self.car.stop()
         self.message_stream.emit('starter')
 
-        # Stop the gas before switching mode
+        # engage new mode
         self.current_pilot_mode = self.driving_modes.get(data)
+        self.current_pilot_mode.engage()
 
         # Make sure we stop even if the previous
         # mode sent a last command before switching.

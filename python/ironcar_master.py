@@ -56,15 +56,15 @@ def main():
     define_event_handlers(pilot, car, socket)
 
     socket.emit('msg2user', 'Starting Camera thread')
-    camera_thread = Thread(target=pilot.drive_loop, args=())
-    camera_thread.start()
+    driving_thread = Thread(target=pilot.drive_loop, args=())
+    driving_thread.start()
     socket.emit('msg2user', 'Camera thread started! Please select a mode.')
 
     try:
         socket.wait()
     except KeyboardInterrupt:
-        car.running = False
-        camera_thread.join()
+        pilot.stop_driving()
+        driving_thread.join()
 
 
 if __name__ == '__main__':

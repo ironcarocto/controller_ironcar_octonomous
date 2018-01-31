@@ -44,8 +44,8 @@ class Pilot(object):
 
     def switch_mode(self, data):
         # always switch the starter to stopped when switching mode
-        self.car.stop()
-        self.message_stream.emit('starter')
+        if self.car.is_started():
+            self.message_stream.emit('starter')
 
         # engage new mode
         self.current_pilot_mode = self.driving_modes.get(data)
@@ -53,4 +53,4 @@ class Pilot(object):
 
         # Make sure we stop even if the previous
         # mode sent a last command before switching.
-        self.car.stop()
+        self.car.set_gas(0)

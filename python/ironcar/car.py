@@ -10,6 +10,9 @@ class Car(object):
         self.curr_gas = curr_gas
         self.max_speed_rate = max_speed_rate
 
+    def is_started(self):
+        return self.state == "started"
+
     def start_or_stop(self, data):
         assert data in ("started", "stopped"), \
             "Passed value should be started or stopped"

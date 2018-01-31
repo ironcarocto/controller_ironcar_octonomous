@@ -1,6 +1,6 @@
 import time
 
-from python.ironcar.car import Car
+from ironcar.car import Car
 
 
 class Pilot(object):

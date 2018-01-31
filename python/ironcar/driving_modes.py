@@ -1,4 +1,4 @@
-from python.ironcar.memory import Memory
+from ironcar.memory import Memory
 
 
 class DrivingModes(object):

@@ -20,5 +20,5 @@ def init_folder():
 
 
 def load_commands():
-    with open("commands.json") as json_file:
+    with open("conf/commands.json") as json_file:
         return json.load(json_file)

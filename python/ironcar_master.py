@@ -41,7 +41,6 @@ def env_setup():
 
 
 def define_event_handlers(pilot, car, socket):
-    socket.emit('msg2user', 'Camera thread started! Please select a mode.')
     # Pilot events
     socket.on('mode_update', pilot.switch_mode)
     socket.on('model_update', pilot.load_model)
@@ -59,6 +58,7 @@ def main():
     socket.emit('msg2user', 'Starting Camera thread')
     camera_thread = Thread(target=pilot.drive_loop, args=())
     camera_thread.start()
+    socket.emit('msg2user', 'Camera thread started! Please select a mode.')
 
     try:
         socket.wait()

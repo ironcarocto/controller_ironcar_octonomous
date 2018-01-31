@@ -1,6 +1,6 @@
 import Adafruit_PCA9685
 
-from ironcar.setup import load_commands
+from python.ironcar.conf import load_commands
 
 
 class CarControl(object):

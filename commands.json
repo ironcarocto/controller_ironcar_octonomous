@@ -1,8 +1,8 @@
 {
   "direction": 1,
   "left": 310,
-  "right": 490,
   "straight": 400,
+  "right": 490,
   "gas": 2,
   "drive": 400,
   "stop": 210,

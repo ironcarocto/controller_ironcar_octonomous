@@ -14,17 +14,22 @@ class DrivingModel(object):
         self.graph = graph
 
     def decide_direction_and_gas(self, img, curr_direction):
-        img = np.array([img[80:, :, :]])
-        with self.graph.as_default():
-            pred = self.model.predict(img)
+        if self.model_loaded:
+            img = np.array([img[80:, :, :]])
+            with self.graph.as_default():
+                pred = self.model.predict(img)
 
-        self.logger.log_prediction(pred)
+            self.logger.log_prediction(pred)
 
-        prediction = list(pred[0])
-        index_class = prediction.index(max(prediction))
-        local_dir = -1 + 2 * float(index_class) / float(len(prediction) - 1)
-        local_gas = self.get_gas_from_direction(curr_direction)
-        return local_dir, local_gas
+            prediction = list(pred[0])
+            index_class = prediction.index(max(prediction))
+            local_dir = -1 + 2 * float(index_class) / float(
+                len(prediction) - 1)
+            local_gas = self.get_gas_from_direction(curr_direction)
+            return local_dir, local_gas
+        else:
+            print("You probably need to load a model ! Just sayin...")
+            return 0, 0
 
     def get_gas_from_direction(self, direction):
         return 0.2

@@ -4,7 +4,8 @@ import picamera.array
 
 
 class Camera(object):
-    def __init__(self, cam_resolution, fps):
+    def __init__(self, cam_resolution, fps, logger):
+        self.logger = logger
         cam = picamera.PiCamera(framerate=fps)
         cam.resolution = cam_resolution
         cam_output = picamera.array.PiRGBArray(cam, size=cam_resolution)
@@ -14,10 +15,8 @@ class Camera(object):
                                              use_video_port=True)
 
     def picture_stream(self):
-        file_count = 0
         for f in self.stream:
             img_arr = f.array
-            np.save('images_logs/img{}'.format(file_count), img_arr)
+            self.logger.log_image(img_arr)
             yield img_arr
-            file_count += 1
             self.cam_output.truncate(0)

@@ -14,14 +14,14 @@ from ironcar.pilot import Pilot
 
 
 def env_setup():
-    # ---- Inputs ----
-    socket = SocketIO('http://localhost', port=8000,
-                      wait_for_connection=False)
-    camera = Camera(cam_resolution, fps)
-
     # ---- Outputs ----
     memory = Memory(save_folder=save_folder)
     logger = Logger()
+
+    # ---- Inputs ----
+    socket = SocketIO('http://localhost', port=8000,
+                      wait_for_connection=False)
+    camera = Camera(cam_resolution, fps, logger)
 
     # ---- Car ----
     car_control = CarControl()

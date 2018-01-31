@@ -37,7 +37,7 @@ class DefaultDrivingMode(object):
         self.car = car
 
     def engage(self):
-        instructions_stream.on('gas', self.car.set_gas)
+        self.instructions_stream.on('gas', self.car.set_gas)
         self.instructions_stream.on('dir', self.car.set_direction)
 
     def drive(self, img):

@@ -36,7 +36,7 @@ def env_setup():
     pilot = Pilot(car=car,
                   visual_input=camera,
                   driving_modes=driving_modes,
-                  message_stream=SocketIO)
+                  message_stream=socket)
     return pilot, car, socket
 
 

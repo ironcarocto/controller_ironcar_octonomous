@@ -16,7 +16,7 @@ class DrivingModel(object):
 
     def decide_direction_and_gas(self, img, curr_direction):
         if self.model_loaded:
-            img = np.array([img[80:, :, :]])
+            img = np.array([img])
             with self.graph.as_default():
                 pred = self.model.predict(img)
 

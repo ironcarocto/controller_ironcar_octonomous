@@ -6,8 +6,7 @@ import picamera.array
 class Camera(object):
     def __init__(self, cam_resolution, fps, logger):
         self.logger = logger
-        cam = picamera.PiCamera(framerate=fps)
-        cam.resolution = cam_resolution
+        cam = picamera.PiCamera(framerate=fps, resolution=cam_resolution)
         cam_output = picamera.array.PiRGBArray(cam, size=cam_resolution)
         self.cam_output = cam_output
         self.stream = cam.capture_continuous(cam_output,

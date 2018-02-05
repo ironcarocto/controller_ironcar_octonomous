@@ -27,12 +27,10 @@ class Car(object):
 
     def set_direction(self, data):
         self.curr_direction = float(data)
+        print('THIS IS THE CURRENT DIRECTION COMMAND ', self.curr_direction)
         if self.curr_direction == 0:
-            print('THIS IS THE CURRENT DIRECTION COMMAND ', 0)
             self.car_control.straight_dir()
         else:
-            print('THIS IS THE CURRENT DIRECTION COMMAND ',
-                  self.curr_direction)
             self.car_control.set_direction(self.curr_direction)
 
     def set_gas(self, data):
@@ -50,4 +48,5 @@ class Car(object):
             self.car_control.set_speed(self.curr_gas)
 
     def set_max_speed(self, new_max_speed):
+        assert 0 <= new_max_speed <= 1
         self.max_speed_rate = new_max_speed

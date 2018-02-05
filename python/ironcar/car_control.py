@@ -19,9 +19,9 @@ class CarControl(object):
         self.pwm.set_pwm_freq(60)
 
     def set_direction(self, direction):
-        direction_value = int(
-            direction * (self.RIGHT_COMMAND - self.LEFT_COMMAND) / 2. +
-            self.STRAIGHT_COMMAND)
+        direction_range = (self.RIGHT_COMMAND - self.LEFT_COMMAND) / 2.
+        direction_offset = self.STRAIGHT_COMMAND
+        direction_value = int(direction * direction_range) + direction_offset
         self.pwm.set_pwm(self.DIRECTION_COMMAND,
                          0,
                          direction_value)
@@ -30,8 +30,9 @@ class CarControl(object):
         self.pwm.set_pwm(self.DIRECTION_COMMAND, 0, self.STRAIGHT_COMMAND)
 
     def set_speed(self, gas):
-        power_value = int(
-            gas * (self.MAX_COMMAND - self.NEUTRAL_COMMAND) + self.MAX_COMMAND)
+        gas_range = (self.MAX_COMMAND - self.NEUTRAL_COMMAND)
+        gas_offset = self.MAX_COMMAND
+        power_value = int(gas * gas_range) + gas_offset
         self.pwm.set_pwm(self.GAS_COMMAND, 0, power_value)
 
     def brake(self):

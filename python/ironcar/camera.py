@@ -16,6 +16,6 @@ class Camera(object):
     def picture_stream(self):
         for f in self.stream:
             img_arr = f.array
-            self.logger.log_image(img_arr)
+            # self.logger.log_image(img_arr)
             yield img_arr
             self.cam_output.truncate(0)

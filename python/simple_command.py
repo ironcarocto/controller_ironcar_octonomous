@@ -107,7 +107,7 @@ def start_run(stream, pwm, model_mlg, cam_output, speed):
         try:
             control_car(pwm, pict, model_mlg, speed)
             cam_output.truncate(0)
-        except Exception:
+        except:
             stop_car(pwm)
             raise
 

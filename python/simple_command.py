@@ -1,4 +1,3 @@
-# Import
 import logging
 from argparse import ArgumentParser
 from os.path import isfile
@@ -6,16 +5,16 @@ from os.path import isfile
 import Adafruit_PCA9685
 import numpy as np
 import picamera.array
-from keras.models import load_model
 
 DEFAULT_RESOLUTION = 250, 70
 DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/my_autopilot_big.hdf5'
-DEFAULT_SPEED = 420
+DEFAULT_SPEED = 0.2
 
 
 def main():
     kwargs = load_args()
-    print(kwargs)
+    logging.info("INPUTS: ")
+    logging.info(kwargs)
     run(**kwargs)
 
 
@@ -48,6 +47,8 @@ def extract_values(args):
 
 
 def run(resolution, model_path, speed):
+    from keras.models import load_model
+    
     # Objects Initialisation
     # Camera
     cam, cam_output, stream = init_cam(resolution)

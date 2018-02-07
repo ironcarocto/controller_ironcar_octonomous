@@ -8,7 +8,7 @@ import picamera.array
 
 DEFAULT_RESOLUTION = 250, 70
 DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/my_autopilot_big.hdf5'
-DEFAULT_SPEED = 0.2
+DEFAULT_SPEED = 0.3
 DEFAULT_PREVIEW = False
 DEFAULT_LOG_LEVEL = "INFO"
 
@@ -78,6 +78,7 @@ def run(resolution, model_path, speed, preview, loglevel):
     model_mlg = load_model(model_path)
     # Arduino
     pwm = Adafruit_PCA9685.PCA9685()
+    pwm.set_pwm_freq(60)
 
     # Start loop
     if preview:
@@ -106,18 +107,18 @@ def start_run(stream, pwm, model_mlg, cam_output, speed):
 def control_car(pwm, pict, model_mlg, speed):
     pred = model_mlg.predict(np.array([pict.array]))
     logging.info(pred)
-    power = command_from_pred(pred)
-    pwm.set_pwm(2, 0, power)
+    direction = command_from_pred(pred)
+    pwm.set_pwm(2, 0, direction)
     pwm.set_pwm(1, 0, speed)
 
 
 def command_from_pred(pred):
     command = {
-        0: 300,
-        1: 350,
-        2: 400,
-        3: 450,
-        4: 500
+        0: 470,
+        1: 420,
+        2: 370,
+        3: 305,
+        4: 240
     }
     power = command[np.argmax(pred)]
     return power

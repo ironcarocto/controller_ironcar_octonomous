@@ -9,13 +9,22 @@ import picamera.array
 DEFAULT_RESOLUTION = 250, 70
 DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/my_autopilot_big.hdf5'
 DEFAULT_SPEED = 0.2
+DEFAULT_PREVIEW = False
+DEFAULT_LOG_LEVEL = "INFO"
 
 
 def main():
     kwargs = load_args()
+    set_log_level(kwargs)
+
     logging.info("INPUTS: ")
     logging.info(kwargs)
     run(**kwargs)
+
+
+def set_log_level(kwargs):
+    log_level = getattr(logging, kwargs.pop("loglevel").upper())
+    logging.basicConfig(level=log_level)
 
 
 def load_args():
@@ -29,6 +38,13 @@ def load_args():
     parser.add_argument('--speed', dest='speed', type=float, nargs=1,
                         default=DEFAULT_SPEED,
                         help='the car speed (ratio to max speed, from 0 to 1)')
+    parser.add_argument('--preview', dest='preview', action='store_const',
+                        const=True, default=DEFAULT_PREVIEW,
+                        help='if given, camera input will be displayed')
+    parser.add_argument('--log-level', dest='loglevel', type=str, nargs=1,
+                        default=DEFAULT_LOG_LEVEL,
+                        help='the log level used (from CRITICAL to DEBUG')
+
     args = parser.parse_args()
     check_valid_args(args)
     return extract_values(args)
@@ -43,10 +59,12 @@ def extract_values(args):
         "resolution": tuple(args.resolution),
         "model_path": args.path,
         "speed": int(400 + 100 * args.speed),
+        "preview": args.preview,
+        "loglevel": args.loglevel,
     }
 
 
-def run(resolution, model_path, speed):
+def run(resolution, model_path, speed, preview, loglevel):
     from keras.models import load_model
     
     # Objects Initialisation
@@ -58,7 +76,8 @@ def run(resolution, model_path, speed):
     pwm = Adafruit_PCA9685.PCA9685()
 
     # Start loop
-    cam.start_preview()
+    if preview:
+        cam.start_preview()
     start_run(stream, pwm, model_mlg, cam_output, speed)
 
 

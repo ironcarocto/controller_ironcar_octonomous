@@ -42,7 +42,7 @@ def extract_values(args):
     return {
         "resolution": tuple(args.resolution),
         "model_path": args.path,
-        "speed": 400 + 100 * args.speed,
+        "speed": int(400 + 100 * args.speed),
     }
 
 

@@ -1,4 +1,3 @@
-import numpy as np
 import picamera
 import picamera.array
 

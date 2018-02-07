@@ -16,7 +16,7 @@ class Memory:
                     str(curr_gas),
                     str(curr_direction)))
         image_path = os.path.join(self.save_folder, image_name)
-        img_arr = np.array(img[80:, :, :], copy=True)
+        img_arr = np.array(img, copy=True)
         imageio.imwrite(image_path, img_arr)
         self.n_img += 1
 

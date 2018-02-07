@@ -29,19 +29,23 @@ def set_log_level(kwargs):
 
 def load_args():
     parser = ArgumentParser(description='Control the OCTONOMOUS OCTOCAR.')
-    parser.add_argument('--resolution', dest='resolution', type=int, nargs=2,
+    parser.add_argument('--resolution', '-r', dest='resolution',
+                        type=int, nargs=2,
                         default=DEFAULT_RESOLUTION,
                         help='the (width, height) resolution')
-    parser.add_argument('--model-path', dest='path', type=str, nargs=1,
+    parser.add_argument('--model-path', '-m', dest='path',
+                        type=str, nargs=1,
                         default=DEFAULT_MODEL_PATH,
                         help='absolute path to the model')
-    parser.add_argument('--speed', dest='speed', type=float, nargs=1,
+    parser.add_argument('--speed', '-s', dest='speed',
+                        type=float, nargs=1,
                         default=DEFAULT_SPEED,
                         help='the car speed (ratio to max speed, from 0 to 1)')
-    parser.add_argument('--preview', dest='preview', action='store_const',
-                        const=True, default=DEFAULT_PREVIEW,
+    parser.add_argument('--preview', '-p', dest='preview',
+                        action='store_true', default=DEFAULT_PREVIEW,
                         help='if given, camera input will be displayed')
-    parser.add_argument('--log-level', dest='loglevel', type=str, nargs=1,
+    parser.add_argument('--log-level', '-l', dest='loglevel',
+                        type=str, nargs=1,
                         default=DEFAULT_LOG_LEVEL,
                         help='the log level used (from CRITICAL to DEBUG')
 

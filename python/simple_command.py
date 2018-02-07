@@ -5,6 +5,7 @@ from os.path import isfile
 import Adafruit_PCA9685
 import numpy as np
 import picamera.array
+import time
 
 DEFAULT_RESOLUTION = 250, 70
 DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/my_autopilot_big.hdf5'
@@ -69,7 +70,7 @@ def extract_values(args):
 
 def run(resolution, model_path, speed, preview):
     from keras.models import load_model
-    
+
     # Objects Initialisation
     # Camera
     cam, cam_output, stream = init_cam(resolution)
@@ -82,7 +83,15 @@ def run(resolution, model_path, speed, preview):
     # Start loop
     if preview:
         cam.start_preview()
+    timer(seconds=5)
     start_run(stream, pwm, model_mlg, cam_output, speed)
+
+
+def timer(seconds=5):
+    for i in range(seconds, 0, -1):
+        logging.info("Starting in {}".format(i))
+        time.sleep(1)
+    logging.info("GO !")
 
 
 def init_cam(resolution=(250, 70)):

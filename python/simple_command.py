@@ -103,13 +103,18 @@ def init_cam(resolution=(250, 70)):
 
 
 def start_run(stream, pwm, model_mlg, cam_output, speed):
-    for pict in stream:
+    start = time.time()
+    for i, pict in enumerate(stream):
         try:
             control_car(pwm, pict, model_mlg, speed)
             cam_output.truncate(0)
-        except:
+        except KeyboardInterrupt:
+            stop = time.time()
+            elapsed_time = stop - start
+            logging.info("Image per second: {}".format(i / elapsed_time))
+            time.sleep(2)
+        finally:
             stop_car(pwm)
-            raise
 
 
 def control_car(pwm, pict, model_mlg, speed):

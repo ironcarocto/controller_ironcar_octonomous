@@ -38,8 +38,7 @@ def load_args():
                         default=DEFAULT_MODEL_PATH,
                         help='absolute path to the model')
     parser.add_argument('--speed', '-s', dest='speed',
-                        type=float, nargs=1,
-                        default=DEFAULT_SPEED,
+                        type=float, default=DEFAULT_SPEED,
                         help='the car speed (ratio to max speed, from 0 to 1)')
     parser.add_argument('--preview', '-p', dest='preview',
                         action='store_true', default=DEFAULT_PREVIEW,

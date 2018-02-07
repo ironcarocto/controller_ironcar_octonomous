@@ -47,7 +47,7 @@ def load_args():
     parser.add_argument('--log-level', '-l', dest='loglevel',
                         type=str, nargs=1,
                         default=DEFAULT_LOG_LEVEL,
-                        help='the log level used (from CRITICAL to DEBUG')
+                        help='the log level used (from CRITICAL to DEBUG)')
 
     args = parser.parse_args()
     check_valid_args(args)
@@ -68,7 +68,7 @@ def extract_values(args):
     }
 
 
-def run(resolution, model_path, speed, preview, loglevel):
+def run(resolution, model_path, speed, preview):
     from keras.models import load_model
     
     # Objects Initialisation

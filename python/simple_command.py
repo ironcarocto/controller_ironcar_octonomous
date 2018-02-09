@@ -131,7 +131,9 @@ def control_car(pwm, pict, model_mlg, speed):
     logging.info(pred)
     direction = direction_command_from_pred(pred)
     pwm.set_pwm(2, 0, direction)
-    pwm.set_pwm(1, 0, int(speed_control(direction, speed)))
+    speed = int(speed_control(direction,speed))
+    logging.info(speed)
+    pwm.set_pwm(1, 0, speed)
 
 
 def direction_command_from_pred(pred):

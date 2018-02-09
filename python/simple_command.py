@@ -10,7 +10,8 @@ import numpy as np
 import picamera.array
 
 DEFAULT_RESOLUTION = 240, 176
-DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123__0.1_20_10_50.hdf5'
+DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123_nvidia.hdf5'
+# DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123__0.1_20_10_50.hdf5'
 DEFAULT_SPEED = 0.2
 DEFAULT_PREVIEW = False
 DEFAULT_LOG_LEVEL = "INFO"
@@ -78,6 +79,7 @@ def extract_values(args):
         "speed": int(400 + 100 * args.speed),
         "preview": args.preview,
         "loglevel": args.loglevel,
+        "regression": args.regression
     }
 
 

@@ -9,7 +9,7 @@ import picamera.array
 
 DEFAULT_RESOLUTION = 240, 176
 DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/my_autopilot_big.hdf5'
-DEFAULT_SPEED = 0.3
+DEFAULT_SPEED = 0.2
 DEFAULT_PREVIEW = False
 DEFAULT_LOG_LEVEL = "INFO"
 

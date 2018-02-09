@@ -1,13 +1,13 @@
 import logging
+import time
 from argparse import ArgumentParser
 from os.path import isfile
 
 import Adafruit_PCA9685
 import numpy as np
 import picamera.array
-import time
 
-DEFAULT_RESOLUTION = 250, 70
+DEFAULT_RESOLUTION = 240, 176
 DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/my_autopilot_big.hdf5'
 DEFAULT_SPEED = 0.3
 DEFAULT_PREVIEW = False
@@ -16,6 +16,8 @@ DEFAULT_LOG_LEVEL = "INFO"
 XTREM_DIRECTION_SPEED_COEFFICIENT = 1
 DIRECTION_SPEED_COEFFICIENT = 1
 STRAIGHT_COEFFICIENT = 1.5
+
+CROPPED_LINES = 53
 
 
 def main():
@@ -117,12 +119,15 @@ def start_run(stream, pwm, model_mlg, cam_output, speed):
             elapsed_time = stop - start
             logging.info("Image per second: {}".format(i / elapsed_time))
             time.sleep(2)
-        finally:
             stop_car(pwm)
+            break
+        except Exception:
+            stop_car(pwm)
+            raise
 
 
 def control_car(pwm, pict, model_mlg, speed):
-    pred = model_mlg.predict(np.array([pict.array]))
+    pred = model_mlg.predict(np.array([pict.array[CROPPED_LINES:, :, :]]))
     logging.info(pred)
     direction = direction_command_from_pred(pred)
     pwm.set_pwm(2, 0, direction)

@@ -13,6 +13,10 @@ DEFAULT_SPEED = 0.3
 DEFAULT_PREVIEW = False
 DEFAULT_LOG_LEVEL = "INFO"
 
+XTREM_DIRECTION_SPEED_COEFFICIENT = 1
+DIRECTION_SPEED_COEFFICIENT = 1
+STRAIGHT_COEFFICIENT = 1.5
+
 
 def main():
     kwargs = load_args()
@@ -120,12 +124,12 @@ def start_run(stream, pwm, model_mlg, cam_output, speed):
 def control_car(pwm, pict, model_mlg, speed):
     pred = model_mlg.predict(np.array([pict.array]))
     logging.info(pred)
-    direction = command_from_pred(pred)
+    direction = direction_command_from_pred(pred)
     pwm.set_pwm(2, 0, direction)
-    pwm.set_pwm(1, 0, speed)
+    pwm.set_pwm(1, 0, speed_control(direction, speed))
 
 
-def command_from_pred(pred):
+def direction_command_from_pred(pred):
     command = {
         0: 470,
         1: 420,
@@ -133,8 +137,17 @@ def command_from_pred(pred):
         3: 305,
         4: 240
     }
-    power = command[np.argmax(pred)]
-    return power
+    direction = command[np.argmax(pred)]
+    return direction
+
+
+def speed_control(direction, speed):
+    if direction == 470 or direction == 240:
+        return speed * XTREM_DIRECTION_SPEED_COEFFICIENT
+    elif direction == 420 or direction == 305:
+        return speed * DIRECTION_SPEED_COEFFICIENT
+    else:
+        return speed * STRAIGHT_COEFFICIENT
 
 
 def stop_car(pwm):

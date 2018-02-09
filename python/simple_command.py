@@ -10,15 +10,15 @@ import numpy as np
 import picamera.array
 
 DEFAULT_RESOLUTION = 240, 176
-DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123_94ACC__0.1_10_20_50.hdf5'
+DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123__0.1_20_10_50.hdf5'
 DEFAULT_SPEED = 0.2
 DEFAULT_PREVIEW = False
 DEFAULT_LOG_LEVEL = "INFO"
 DEFAULT_REGRESSION = False
 
-XTREM_DIRECTION_SPEED_COEFFICIENT = 1.01
-DIRECTION_SPEED_COEFFICIENT = 1.02
-STRAIGHT_COEFFICIENT = 1.05
+XTREM_DIRECTION_SPEED_COEFFICIENT = 1
+DIRECTION_SPEED_COEFFICIENT = 1
+STRAIGHT_COEFFICIENT = 1
 
 CROPPED_LINES = 53
 
@@ -123,11 +123,12 @@ def start_run(stream, pwm, model_mlg, cam_output, speed, regression):
             control_car(pwm, pict, model_mlg, speed, regression, queue)
             cam_output.truncate(0)
         except KeyboardInterrupt:
+            stop_car(pwm)
+            cam_output.truncate(0)
             stop = time.time()
             elapsed_time = stop - start
             logging.info("Image per second: {}".format(i / elapsed_time))
             time.sleep(2)
-            stop_car(pwm)
             break
         except Exception:
             stop_car(pwm)
@@ -140,18 +141,13 @@ def control_car(pwm, pict, model_mlg, speed, regression, queue):
 
     direction = direction_command_from_pred(pred, regression)
     direction = smooth_direction(direction, queue)
-    logging.info("direction:", direction)
-    pwm.set_pwm(2, 0, direction)
+    logging.info("direction: {}".format(direction))
 
     speed = int(speed_control(direction, speed))
-    logging.info("speed", speed)
+    logging.info("speed: {}".format(speed))
+
+    pwm.set_pwm(2, 0, direction)
     pwm.set_pwm(1, 0, speed)
-
-
-def smooth_direction(direction, queue: deque):
-    queue.appendleft(direction)
-    parameters = [0.7, 0.2, 0.05, 0.05]
-    return int(np.average(queue, weights=parameters[:len(queue)]))
 
 
 def direction_command_from_pred(pred, regression=False):
@@ -176,6 +172,12 @@ def direction_command_from_pred(pred, regression=False):
         }
         direction = command[np.argmax(pred)]
     return direction
+
+
+def smooth_direction(direction, queue: deque):
+    queue.appendleft(direction)
+    parameters = [0.7, 0.2, 0.05, 0.05]
+    return int(np.average(queue, weights=parameters[:len(queue)]))
 
 
 def speed_control(direction, speed):

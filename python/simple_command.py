@@ -1,6 +1,7 @@
 import logging
 import time
 from argparse import ArgumentParser
+from collections import deque
 from math import tan, pi
 from os.path import isfile
 
@@ -116,9 +117,10 @@ def init_cam(resolution=(250, 70)):
 
 def start_run(stream, pwm, model_mlg, cam_output, speed, regression):
     start = time.time()
+    queue = deque(maxlen=4)
     for i, pict in enumerate(stream):
         try:
-            control_car(pwm, pict, model_mlg, speed, regression)
+            control_car(pwm, pict, model_mlg, speed, regression, queue)
             cam_output.truncate(0)
         except KeyboardInterrupt:
             stop = time.time()
@@ -132,14 +134,24 @@ def start_run(stream, pwm, model_mlg, cam_output, speed, regression):
             raise
 
 
-def control_car(pwm, pict, model_mlg, speed, regression):
+def control_car(pwm, pict, model_mlg, speed, regression, queue):
     pred = model_mlg.predict(np.array([pict.array[CROPPED_LINES:, :, :]]))
     logging.info(pred)
+
     direction = direction_command_from_pred(pred, regression)
+    direction = smooth_direction(direction, queue)
+    logging.info("direction:", direction)
     pwm.set_pwm(2, 0, direction)
-    speed = int(speed_control(direction,speed))
-    logging.info(speed)
+
+    speed = int(speed_control(direction, speed))
+    logging.info("speed", speed)
     pwm.set_pwm(1, 0, speed)
+
+
+def smooth_direction(direction, queue: deque):
+    queue.appendleft(direction)
+    parameters = [0.7, 0.2, 0.05, 0.05]
+    return int(np.average(queue, weights=parameters[:len(queue)]))
 
 
 def direction_command_from_pred(pred, regression=False):

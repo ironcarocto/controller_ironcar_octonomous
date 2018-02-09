@@ -1,6 +1,7 @@
 import logging
 import time
 from argparse import ArgumentParser
+from math import tan, pi
 from os.path import isfile
 
 import Adafruit_PCA9685
@@ -12,6 +13,7 @@ DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123__0.1_20_10_50.hdf5
 DEFAULT_SPEED = 0.2
 DEFAULT_PREVIEW = False
 DEFAULT_LOG_LEVEL = "INFO"
+DEFAULT_REGRESSION = False
 
 XTREM_DIRECTION_SPEED_COEFFICIENT = 1.01
 DIRECTION_SPEED_COEFFICIENT = 1.02
@@ -50,6 +52,10 @@ def load_args():
     parser.add_argument('--preview', '-p', dest='preview',
                         action='store_true', default=DEFAULT_PREVIEW,
                         help='if given, camera input will be displayed')
+    parser.add_argument('--regression', dest='regression',
+                        action='store_true', default=DEFAULT_REGRESSION,
+                        help='if given, '
+                             'uses regression instead of classification')
     parser.add_argument('--log-level', '-l', dest='loglevel',
                         type=str, nargs=1,
                         default=DEFAULT_LOG_LEVEL,
@@ -74,7 +80,7 @@ def extract_values(args):
     }
 
 
-def run(resolution, model_path, speed, preview):
+def run(resolution, model_path, speed, preview, regression):
     from keras.models import load_model
 
     # Objects Initialisation
@@ -90,7 +96,7 @@ def run(resolution, model_path, speed, preview):
     if preview:
         cam.start_preview()
     timer(seconds=5)
-    start_run(stream, pwm, model_mlg, cam_output, speed)
+    start_run(stream, pwm, model_mlg, cam_output, speed, regression)
 
 
 def timer(seconds=5):
@@ -108,11 +114,11 @@ def init_cam(resolution=(250, 70)):
     return cam, cam_output, stream
 
 
-def start_run(stream, pwm, model_mlg, cam_output, speed):
+def start_run(stream, pwm, model_mlg, cam_output, speed, regression):
     start = time.time()
     for i, pict in enumerate(stream):
         try:
-            control_car(pwm, pict, model_mlg, speed)
+            control_car(pwm, pict, model_mlg, speed, regression)
             cam_output.truncate(0)
         except KeyboardInterrupt:
             stop = time.time()
@@ -126,25 +132,37 @@ def start_run(stream, pwm, model_mlg, cam_output, speed):
             raise
 
 
-def control_car(pwm, pict, model_mlg, speed):
+def control_car(pwm, pict, model_mlg, speed, regression):
     pred = model_mlg.predict(np.array([pict.array[CROPPED_LINES:, :, :]]))
     logging.info(pred)
-    direction = direction_command_from_pred(pred)
+    direction = direction_command_from_pred(pred, regression)
     pwm.set_pwm(2, 0, direction)
     speed = int(speed_control(direction,speed))
     logging.info(speed)
     pwm.set_pwm(1, 0, speed)
 
 
-def direction_command_from_pred(pred):
-    command = {
-        0: 470,
-        1: 420,
-        2: 370,
-        3: 305,
-        4: 240
-    }
-    direction = command[np.argmax(pred)]
+def direction_command_from_pred(pred, regression=False):
+    if regression:
+        # See DrawingLayer in road_simulator for the pi / 6 value
+        angle = tan(pred * pi / 6)
+        angle = max(-45, min(45, angle))
+
+        # Command range is not centered, hence the difference here :
+        if angle > 0:
+            direction = int(370 + 100 * angle / 45)
+        else:
+            direction = int(370 + 130 * angle / 45)
+
+    else:
+        command = {
+            0: 470,
+            1: 420,
+            2: 370,
+            3: 305,
+            4: 240
+        }
+        direction = command[np.argmax(pred)]
     return direction
 
 

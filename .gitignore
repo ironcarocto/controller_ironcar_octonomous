@@ -8,6 +8,12 @@ __pycache__/
 # C extensions
 *.so
 
+# Models
+*.hdf5
+
+# Image
+*.jpg
+
 # Distribution / packaging
 .Python
 env/

@@ -11,7 +11,6 @@ import picamera.array
 
 DEFAULT_RESOLUTION = 240, 176
 DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123_nvidia.hdf5'
-# DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123__0.1_20_10_50.hdf5'
 DEFAULT_SPEED = 0.2
 DEFAULT_PREVIEW = False
 DEFAULT_LOG_LEVEL = "INFO"
@@ -22,6 +21,7 @@ DIRECTION_SPEED_COEFFICIENT = 1
 STRAIGHT_COEFFICIENT = 1
 
 CROPPED_LINES = 53
+IMG_QUEUE_LENGTH = 3
 
 
 def main():
@@ -45,7 +45,7 @@ def load_args():
                         default=DEFAULT_RESOLUTION,
                         help='the (width, height) resolution')
     parser.add_argument('--model-path', '-m', dest='path',
-                        type=str, nargs=1,
+                        type=str,
                         default=DEFAULT_MODEL_PATH,
                         help='absolute path to the model')
     parser.add_argument('--speed', '-s', dest='speed',
@@ -54,7 +54,7 @@ def load_args():
     parser.add_argument('--preview', '-p', dest='preview',
                         action='store_true', default=DEFAULT_PREVIEW,
                         help='if given, camera input will be displayed')
-    parser.add_argument('--regression', dest='regression',
+    parser.add_argument('--regression', '-R', dest='regression',
                         action='store_true', default=DEFAULT_REGRESSION,
                         help='if given, '
                              'uses regression instead of classification')
@@ -119,10 +119,14 @@ def init_cam(resolution=(250, 70)):
 
 def start_run(stream, pwm, model_mlg, cam_output, speed, regression):
     start = time.time()
-    queue = deque(maxlen=4)
+    pred_queue = deque(maxlen=4)
+    img_queue = deque(maxlen=IMG_QUEUE_LENGTH)
     for i, pict in enumerate(stream):
         try:
-            control_car(pwm, pict, model_mlg, speed, regression, queue)
+            img_queue.append(crop(pict))
+            if i % IMG_QUEUE_LENGTH == 0:
+                control_car(pwm, img_queue, model_mlg, speed,
+                            regression, pred_queue)
             cam_output.truncate(0)
         except KeyboardInterrupt:
             stop_car(pwm)
@@ -137,8 +141,13 @@ def start_run(stream, pwm, model_mlg, cam_output, speed, regression):
             raise
 
 
-def control_car(pwm, pict, model_mlg, speed, regression, queue):
-    pred = model_mlg.predict(np.array([pict.array[CROPPED_LINES:, :, :]]))
+def crop(pict):
+    return pict.array[CROPPED_LINES:, :, :]
+
+
+def control_car(pwm, img_queue, model_mlg, speed, regression, queue):
+    array = img_queue_to_array(img_queue)
+    pred = predict(model_mlg, array)
     logging.info(pred)
 
     direction = direction_command_from_pred(pred, regression)
@@ -150,6 +159,15 @@ def control_car(pwm, pict, model_mlg, speed, regression, queue):
 
     pwm.set_pwm(2, 0, direction)
     pwm.set_pwm(1, 0, speed)
+
+
+def img_queue_to_array(queue):
+    return np.array([x for x in queue])
+
+
+def predict(model, images):
+    preds = model.predict(images)
+    return np.mean(preds, axis=0)
 
 
 def direction_command_from_pred(pred, regression=False):

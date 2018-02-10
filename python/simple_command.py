@@ -111,6 +111,7 @@ def timer(seconds=5):
 
 def init_cam(resolution=(250, 70)):
     cam = picamera.PiCamera(resolution=resolution, framerate=60)
+    cam.awb_mode = 'flash'
     cam_output = picamera.array.PiRGBArray(cam, size=resolution)
     stream = cam.capture_continuous(cam_output, format='rgb',
                                     use_video_port=True)

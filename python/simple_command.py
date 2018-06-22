@@ -7,7 +7,13 @@ from os.path import isfile
 
 import Adafruit_PCA9685
 import numpy as np
-import picamera.array
+
+try:
+    import picamera.array
+except ImportError:
+    print("Can't import picamera, "
+          "you probably should be running this on the IronCar or install the "
+          "picamera library")
 
 DEFAULT_RESOLUTION = 240, 176
 DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123_nvidia.hdf5'
@@ -69,7 +75,7 @@ def load_args():
 
 
 def check_valid_args(args):
-    assert isfile(args.path), "Model must exist"
+    assert isfile(args.path), "Model {} must exist".format(args.path)
 
 
 def extract_values(args):
@@ -90,7 +96,7 @@ def run(resolution, model_path, speed, preview, regression):
     # Camera
     cam, cam_output, stream = init_cam(resolution)
     # Model
-    model_mlg = load_model(model_path)
+    model = load_model(model_path)
     # Arduino
     pwm = Adafruit_PCA9685.PCA9685()
     pwm.set_pwm_freq(60)
@@ -99,7 +105,7 @@ def run(resolution, model_path, speed, preview, regression):
     if preview:
         cam.start_preview()
     timer(seconds=5)
-    start_run(stream, pwm, model_mlg, cam_output, speed, regression)
+    start_run(stream, pwm, model, cam_output, speed, regression)
 
 
 def timer(seconds=5):
@@ -118,7 +124,7 @@ def init_cam(resolution=(250, 70)):
     return cam, cam_output, stream
 
 
-def start_run(stream, pwm, model_mlg, cam_output, speed, regression):
+def start_run(stream, pwm, model, cam_output, speed, regression):
     start = time.time()
     pred_queue = deque(maxlen=4)
     img_queue = deque(maxlen=IMG_QUEUE_LENGTH)
@@ -126,7 +132,7 @@ def start_run(stream, pwm, model_mlg, cam_output, speed, regression):
         try:
             img_queue.append(crop(pict))
             if i % IMG_QUEUE_LENGTH == 0:
-                control_car(pwm, img_queue, model_mlg, speed,
+                control_car(pwm, img_queue, model, speed,
                             regression, pred_queue)
             cam_output.truncate(0)
         except KeyboardInterrupt:
@@ -146,9 +152,9 @@ def crop(pict):
     return pict.array[CROPPED_LINES:, :, :]
 
 
-def control_car(pwm, img_queue, model_mlg, speed, regression, queue):
+def control_car(pwm, img_queue, model, speed, regression, queue):
     array = img_queue_to_array(img_queue)
-    pred = predict(model_mlg, array)
+    pred = predict(model, array)
     logging.info(pred)
 
     direction = direction_command_from_pred(pred, regression)

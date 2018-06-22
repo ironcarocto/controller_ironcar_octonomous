@@ -35,28 +35,33 @@ car hardware (motors, camera  and other potential sensors if you want to add any
 
 
 ### Raspberry-pi
-Two programs are to be launched on the raspi. You can use `screen` if you don't want to carry 
-a laptop. Those two programs can be run as daemon if you really don't want to use a laptop. 
 
-* server node: 
-``` sh
-$ node car_server.js
+Launch the python script which will run the car:  
+ 
+```console
+$ python3 simple_command.py
 ``` 
-This will launch the node server. By default, it runs on 
-the raspi localhost on the port 8000. 
-* python client: 
-``` sh
-$ python3 ironcar_master.py
-``` 
-This will launch the python client that directly
-controls the car and takes commmands from the node server.
 
-### Laptop
-If you have a gamepad to control the car in training/ direction auto and you want to control it, you can launch `controller.py` on the laptop (don't forget to change the ip to put your raspi's ip)
-You might need to change this script to adapt to your gamepad.  
-As an example, we used a xbox gamepad and listened to the left joystick for direction and `RT` trigger for the gas, `LT` to break. 
+This script allows for a few optionnal parameters. The full syntax is :
+```console
+$ python3 simple_command.py [-h] [--resolution RESOLUTION RESOLUTION]
+                         [--model-path PATH] [--speed SPEED] [--preview]
+                         [--regression] [--log-level LOGLEVEL]
+```
 
-### Other devices
-The user interface is a javascript client that can be launched in any browser in theory 
-(firefox, chrome and safari have been tested). Just go to `YOUR_RASPI_IP:8000` and you should be able to 
-choose the mode, the model, the speed, and control the car with a keyboard (the keyboard is obviously not supported if you connect from a smartphone!).
+where :
+* -h: prints the help message
+* --resolution / -r: the resolution (width height) of the camera. You must 
+pass 2 integers after the `--resolution` option - for example, 
+`--resolution 100 50`. Default = 240 176
+* --model-path / -m: absolute path to the Keras model. `keras.load_model` will 
+be used to load the model, which must comply with this function requirements 
+(if you used keras to save your model, you should be fine). 
+Default = '/home/pi/ironcar/autopilots/octo240x123_nvidia.hdf5'
+* --speed / -s: the ratio (from 0 to 1) of the max speed to be used. 1 means 
+that the IronCar will be allowed to use the maximum hardware speed (which is 
+very fast, start with a low value such as 0.2) Default = 0.2
+* --preview / -p: prints a preview of the picamera directly onto the terminal. 
+Neat, but you probably don't want that in production.
+* --regression / -R: assume a regression model (default is classification)
+* --log-level / -l: the log level used (from CRITICAL to DEBUG). Default = INFO

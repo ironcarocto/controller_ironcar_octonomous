@@ -1,40 +1,6 @@
 # IRONCAR
 
-## Hardware setup
-
-You will find a tutorial on google docs [here](https://docs.google.com/document/d/1jyRhlbmthMA_DuuulYnzUT38okIF_KFZH0a4hh8NCg8/edit?usp=sharing)  .
-
-## Raspberry-pi Setup
-### Easy setup with install.sh
-
-You can easily setup everything on the raspi using the `install.sh` bash. To do so, go on your raspi and do:
-``` sh
-$ ./install.sh
-```
-
-It will install *keras*, *tensorflow*, *nodejs* and some other dependencies in the requirements. This should take 2-3 hours... (*scipy* is very long to install). At the end of the install, you will need to choose if you want to enable the pi camera, i2c connections and augment the swap size (which is very small by default). 
-And that's it, you should be ready to go to the launching part!!
-
-### Manual setup
-
-You can install the requirements from `requirements_raspi.txt` yourself, but you will need to install *tensorflow* as well as *nodejs* and *npm*. You will also need to install the node packages from `package.json`. 
-Last you will need to configure your camera and any other device to be enabled on the raspi. 
-
-## Laptop Setup
-You need to install the `requirements_laptop.txt` on your laptop only if you want to train your car with a gamepad and with the `controller.py` script. You can do it like this:
-``` sh
-$ pip3 install requirements_laptop.txt
-```
-Otherwize, there is nothing needed for this part on the laptop, you will only use your browser to connect to the raspi via a node client. 
-
-## Startup
-In order to communicate between the car and the laptop or another device like a smartphone,
-we used *socketio* on python and nodejs. Therefore, we need to launch a server node on the raspi
-and clients on other devices. A python client on the raspi ensures the communication with the 
-car hardware (motors, camera  and other potential sensors if you want to add any).
-
-
-### Raspberry-pi
+## Run it !
 
 Launch the python script which will run the car:  
  
@@ -65,3 +31,30 @@ very fast, start with a low value such as 0.2) Default = 0.2
 Neat, but you probably don't want that in production.
 * --regression / -R: assume a regression model (default is classification)
 * --log-level / -l: the log level used (from CRITICAL to DEBUG). Default = INFO
+
+## Hardware setup
+
+You will find a tutorial on google docs [here](https://docs.google.com/document/d/1jyRhlbmthMA_DuuulYnzUT38okIF_KFZH0a4hh8NCg8/edit?usp=sharing)  .
+
+## Raspberry-pi Setup
+### Easy setup with install.sh
+
+You can easily setup everything on the raspi using the `install.sh` bash. To do so, go on your raspi and do:
+``` sh
+$ ./install.sh
+```
+
+It will install *keras*, *tensorflow*, *nodejs* and some other dependencies in the requirements. This should take 2-3 hours... (*scipy* is very long to install). At the end of the install, you will need to choose if you want to enable the pi camera, i2c connections and augment the swap size (which is very small by default). 
+And that's it, you should be ready to go to the launching part!!
+
+### Manual setup
+
+You can install the requirements from `requirements_raspi.txt` yourself, but you will need to install *tensorflow* as well as *nodejs* and *npm*. You will also need to install the node packages from `package.json`. 
+Last you will need to configure your camera and any other device to be enabled on the raspi. 
+
+## Laptop Setup
+You need to install the `requirements_laptop.txt` on your laptop only if you want to train your car with a gamepad and with the `controller.py` script. You can do it like this:
+``` sh
+$ pip3 install requirements_laptop.txt
+```
+Otherwize, there is nothing needed for this part on the laptop, you will only use your browser to connect to the raspi via a node client. 

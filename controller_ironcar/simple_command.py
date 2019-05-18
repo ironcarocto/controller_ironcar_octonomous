@@ -5,12 +5,13 @@ from collections import deque
 from math import tan, pi
 from os.path import isfile
 
-import Adafruit_PCA9685
 import numpy as np
 import os
 
 from controller_ironcar.capture import build_capture
 from controller_ironcar import CONTROLLER_IRONCAR_PACKAGE_DIR
+from controller_ironcar.domain.car_controller import CarController
+from controller_ironcar.infrastructure.arduino_car_controller import ArduinoCarController
 
 logger = logging.getLogger('controller_ironcar')
 
@@ -110,8 +111,7 @@ def run(resolution, model_path, speed, preview, capture_stream, regression):
     # Model
     model = load_model(model_path)
     # Arduino
-    pwm = Adafruit_PCA9685.PCA9685()
-    pwm.set_pwm_freq(60)
+    car_controller = ArduinoCarController()
 
     # Start loop
     if preview:
@@ -120,7 +120,7 @@ def run(resolution, model_path, speed, preview, capture_stream, regression):
     capture = build_capture(DEFAULT_HOME, capture_stream)
 
     timer(seconds=5)
-    start_run(stream, pwm, model, cam_output, capture, speed, regression)
+    start_run(stream, car_controller, model, cam_output, capture, speed, regression)
 
 
 def timer(seconds=5):
@@ -139,7 +139,7 @@ def init_cam(resolution=(250, 70)):
     return cam, cam_output, stream
 
 
-def start_run(stream, pwm, model, cam_output, capture, speed, regression):
+def start_run(stream, car_controller: CarController, model, cam_output, capture, speed, regression):
     start = time.time()
     pred_queue = deque(maxlen=4)
     img_queue = deque(maxlen=IMG_QUEUE_LENGTH)
@@ -156,11 +156,11 @@ def start_run(stream, pwm, model, cam_output, capture, speed, regression):
         try:
             img_queue.append(crop(pict))
             if index_capture % IMG_QUEUE_LENGTH == 0:
-                control_car(pwm, img_queue, model, speed,
+                control_car(car_controller, img_queue, model, speed,
                             regression, pred_queue)
             cam_output.truncate(0)
         except KeyboardInterrupt:
-            stop_car(pwm)
+            car_controller.stop_car()
             cam_output.truncate(0)
             stop = time.time()
             elapsed_time = stop - start
@@ -168,7 +168,7 @@ def start_run(stream, pwm, model, cam_output, capture, speed, regression):
             time.sleep(2)
             break
         except Exception:
-            stop_car(pwm)
+            car_controller.stop_car()
             raise
 
         index_capture += 1
@@ -178,7 +178,7 @@ def crop(pict):
     return pict.array[CROPPED_LINES:, :, :]
 
 
-def control_car(pwm, img_queue, model, speed, regression, queue):
+def control_car(car_controller: CarController, img_queue, model, speed, regression, queue):
     array = img_queue_to_array(img_queue)
     pred = predict(model, array)
     logging.info(pred)
@@ -190,8 +190,9 @@ def control_car(pwm, img_queue, model, speed, regression, queue):
     #speed = int(speed_control(direction, speed))
     logging.info("speed: {}".format(speed))
 
-    pwm.set_pwm(2, 0, direction)
-    pwm.set_pwm(1, 0, speed)
+    car_controller.set_direction(direction)
+    car_controller.set_speed(speed)
+
 
 
 def img_queue_to_array(queue):
@@ -240,12 +241,6 @@ def speed_control(direction, speed):
         return speed * DIRECTION_SPEED_COEFFICIENT
     else:
         return speed * STRAIGHT_COEFFICIENT
-
-
-def stop_car(pwm):
-    pwm.set_pwm(1, 0, 400)
-    pwm.set_pwm(2, 0, 400)
-
 
 if __name__ == '__main__':
     main()

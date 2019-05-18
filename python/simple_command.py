@@ -17,7 +17,7 @@ except ImportError:
 
 DEFAULT_RESOLUTION = 240, 176
 DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123_nvidia.hdf5'
-DEFAULT_SPEED = 0.2
+DEFAULT_SPEED = 0.27
 DEFAULT_PREVIEW = False
 DEFAULT_LOG_LEVEL = "INFO"
 DEFAULT_REGRESSION = False
@@ -26,7 +26,7 @@ XTREM_DIRECTION_SPEED_COEFFICIENT = 1
 DIRECTION_SPEED_COEFFICIENT = 1
 STRAIGHT_COEFFICIENT = 1
 
-CROPPED_LINES = 53
+CROPPED_LINES = 245
 IMG_QUEUE_LENGTH = 3
 
 
@@ -117,7 +117,7 @@ def timer(seconds=5):
 
 def init_cam(resolution=(250, 70)):
     cam = picamera.PiCamera(resolution=resolution, framerate=60)
-    cam.awb_mode = 'flash'
+    cam.awb_mode = 'auto'
     cam_output = picamera.array.PiRGBArray(cam, size=resolution)
     stream = cam.capture_continuous(cam_output, format='rgb',
                                     use_video_port=True)
@@ -158,10 +158,10 @@ def control_car(pwm, img_queue, model, speed, regression, queue):
     logging.info(pred)
 
     direction = direction_command_from_pred(pred, regression)
-    direction = smooth_direction(direction, queue)
+    #direction = smooth_direction(direction, queue)
     logging.info("direction: {}".format(direction))
 
-    speed = int(speed_control(direction, speed))
+    #speed = int(speed_control(direction, speed))
     logging.info("speed: {}".format(speed))
 
     pwm.set_pwm(2, 0, direction)
@@ -191,11 +191,11 @@ def direction_command_from_pred(pred, regression=False):
 
     else:
         command = {
-            0: 470,
-            1: 420,
-            2: 370,
-            3: 305,
-            4: 240
+            0: 450,
+            1: 260,
+            2: 410,
+            3: 290,
+            4: 340
         }
         direction = command[np.argmax(pred)]
     return direction

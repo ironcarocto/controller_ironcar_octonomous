@@ -21,20 +21,21 @@ setup(
         ],
     },
     install_requires=[
-        'numpy',
-        'keras==1.2.0',
+        'decorator',
         'h5py==2.7.0',
-        'socketIO-client==0.7.2',
-        'Pillow'
+        'keras==1.2.0',
+        'numpy',
+        'Pillow',
+        'socketIO-client==0.7.2'
     ],
     extras_require={
         'dev': [
             'pytest'
         ],
         'rasbperry': [
-            'Adafruit_PCA9685',
             'Adafruit_BNO055',
-            'picamera',
+            'Adafruit_PCA9685',
+            'picamera'
         ]
     }
 )

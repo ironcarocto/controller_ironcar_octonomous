@@ -9,7 +9,7 @@ import Adafruit_PCA9685
 import numpy as np
 import os
 
-from controller_ironcar.capture import Capture, StubCapture, build_capture
+from controller_ironcar.capture import build_capture
 from controller_ironcar import CONTROLLER_IRONCAR_PACKAGE_DIR
 
 logger = logging.getLogger('controller_ironcar')
@@ -118,8 +118,6 @@ def run(resolution, model_path, speed, preview, capture_stream, regression):
         cam.start_preview()
 
     capture = build_capture(DEFAULT_HOME, capture_stream)
-
-    # initialiser un dossier stream avec un timestamp et un random
 
     timer(seconds=5)
     start_run(stream, pwm, model, cam_output, capture, speed, regression)

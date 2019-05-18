@@ -30,3 +30,8 @@ def test_requirement2_default_autopilot_is_present(build_source_distribution):
         sources = f.read()
         assert 'controller_ironcar/resources/autopilots/autopilot_500k.hdf5' in sources, 'content {file} : {sources}'.format(
             file=source_list_file, sources=sources)
+
+def test_requirement3_command_should_show_help_instruction():
+    output = subprocess.check_output(['python', '-m', 'controller_ironcar.simple_command', '-h'])
+
+    assert b'usage: simple_command.py [-h]' in output, '{}'.format(output)

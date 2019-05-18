@@ -17,3 +17,8 @@ As user, I can setup the application with the command :
 .. code-block::
 
     pip install git+https://github.com/ironcarocto/controller_ironcar_octonomous.git@master
+
+command help
+************
+
+* Requirement 3: the command should show help instruction even without raspberry

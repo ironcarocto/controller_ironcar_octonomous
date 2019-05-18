@@ -104,6 +104,9 @@ def run(resolution, model_path, speed, preview, regression):
     # Start loop
     if preview:
         cam.start_preview()
+
+    # initialiser un dossier stream avec un timestamp et un random
+
     timer(seconds=5)
     start_run(stream, pwm, model, cam_output, speed, regression)
 
@@ -129,6 +132,8 @@ def start_run(stream, pwm, model, cam_output, speed, regression):
     pred_queue = deque(maxlen=4)
     img_queue = deque(maxlen=IMG_QUEUE_LENGTH)
     for i, pict in enumerate(stream):
+        # hook avec l'injection de l'image, activer ou desactiver selon
+        # la commande
         try:
             img_queue.append(crop(pict))
             if i % IMG_QUEUE_LENGTH == 0:

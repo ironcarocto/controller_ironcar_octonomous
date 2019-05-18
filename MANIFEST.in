@@ -1,4 +1,4 @@
 include *.md
 include requirements.txt
-include autopilots/*
-include python/conf/*
+include controller_ironcar/resources/autopilots/*
+exclude tests/*

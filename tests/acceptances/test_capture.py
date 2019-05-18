@@ -2,7 +2,7 @@ import numpy as np
 import os
 from PIL import Image
 
-from python.capture import Capture, FileSystemCapture
+from controller_ironcar.capture import Capture, FileSystemCapture
 from tests.acceptances.fixtures import clone_fixture
 
 

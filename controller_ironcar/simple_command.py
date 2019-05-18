@@ -9,7 +9,8 @@ import Adafruit_PCA9685
 import numpy as np
 import os
 
-from python.capture import Capture, StubCapture, build_capture
+from controller_ironcar.capture import Capture, StubCapture, build_capture
+from controller_ironcar import CONTROLLER_IRONCAR_PACKAGE_DIR
 
 logger = logging.getLogger('controller_ironcar')
 
@@ -22,7 +23,7 @@ except ImportError:
 
 DEFAULT_RESOLUTION = 240, 176
 DEFAULT_HOME = os.path.realpath(os.path.join(os.getcwd(), 'outputs'))
-DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123_nvidia.hdf5'
+DEFAULT_MODEL_PATH = os.path.join(CONTROLLER_IRONCAR_PACKAGE_DIR, 'resources', 'autopilots', 'autopilot_500k.hdf5')
 DEFAULT_SPEED = 0.27
 DEFAULT_PREVIEW = False
 DEFAULT_CAPTURE = False

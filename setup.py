@@ -30,7 +30,7 @@ setup(
     ],
     extras_require={
         'dev': [
-            'inputs'
+            'pytest'
         ]
     }
 )

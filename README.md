@@ -5,12 +5,12 @@
 Launch the python script which will run the car:  
  
 ```console
-$ python3 simple_command.py
+$ python3 python/simple_command.py
 ``` 
 
 This script allows for a few optionnal parameters. The full syntax is :
 ```console
-$ python3 simple_command.py [-h] [--resolution RESOLUTION RESOLUTION]
+$ python3 python/simple_command.py.py [-h] [--resolution RESOLUTION RESOLUTION]
                          [--model-path PATH] [--speed SPEED] [--preview]
                          [--regression] [--log-level LOGLEVEL]
 ```
@@ -50,11 +50,4 @@ And that's it, you should be ready to go to the launching part!!
 ### Manual setup
 
 You can install the requirements from `requirements_raspi.txt` yourself, but you will need to install *tensorflow* as well as *nodejs* and *npm*. You will also need to install the node packages from `package.json`. 
-Last you will need to configure your camera and any other device to be enabled on the raspi. 
-
-## Laptop Setup
-You need to install the `requirements_laptop.txt` on your laptop only if you want to train your car with a gamepad and with the `controller.py` script. You can do it like this:
-``` sh
-$ pip3 install requirements_laptop.txt
-```
-Otherwize, there is nothing needed for this part on the laptop, you will only use your browser to connect to the raspi via a node client. 
+Last you will need to configure your camera and any other device to be enabled on the raspi.

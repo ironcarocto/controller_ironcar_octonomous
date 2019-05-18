@@ -116,7 +116,7 @@ def run(resolution, model_path, speed, preview, capture_stream, regression):
     if preview:
         cam.start_preview()
 
-    capture = build_capture(DEFAULT_HOME) if capture_stream else StubCapture()
+    capture = build_capture(DEFAULT_HOME, capture_stream)
 
     # initialiser un dossier stream avec un timestamp et un random
 

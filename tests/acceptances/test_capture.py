@@ -2,7 +2,7 @@ import numpy as np
 import os
 from PIL import Image
 
-from python.capture import Capture
+from python.capture import Capture, FileSystemCapture
 from tests.acceptances.fixtures import clone_fixture
 
 
@@ -17,7 +17,7 @@ def test_save_should_write_a_png_image_from_rgb_data():
         rgb_array = np.array(img_rgb)
         output_dir = os.path.join(path, "output")
         expected_file_path = os.path.join(output_dir, result_image_name)
-        capture = Capture(output_dir)
+        capture = FileSystemCapture(output_dir)
 
         # When
         capture.save(rgb_array, i)

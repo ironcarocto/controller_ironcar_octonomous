@@ -11,8 +11,8 @@ class Capture:
     def __init__(self, output_dir: str):
         self._output_dir = output_dir
 
-    def save(self, rbg_data: np.ndarray, index_capture: int) -> None:
-        image_png = Image.fromarray(rbg_data, "RGB")
+    def save(self, rgb_data: np.ndarray, index_capture: int) -> None:
+        image_png = Image.fromarray(rgb_data, "RGB")
         filepath = os.path.join(self._output_dir,
                                 '{name}.png'.format(name=index_capture))
         logger.debug('save camera output filepath={filepath}'.format(filepath=filepath))

@@ -7,6 +7,11 @@ from os.path import isfile
 
 import Adafruit_PCA9685
 import numpy as np
+import os
+
+from python.capture import Capture
+
+logger = logging.getLogger('controller_ironcar')
 
 try:
     import picamera.array
@@ -16,7 +21,8 @@ except ImportError:
           "picamera library")
 
 DEFAULT_RESOLUTION = 240, 176
-DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123_nvidia.hdf5'
+DEFAULT_HOME = os.path.realpath(os.getcwd())
+DEFAULT_MODEL_PATH = os.path.join(DEFAULT_HOME, 'autopilots/octo240x123_nvidia.hdf5')
 DEFAULT_SPEED = 0.27
 DEFAULT_PREVIEW = False
 DEFAULT_LOG_LEVEL = "INFO"
@@ -28,6 +34,8 @@ STRAIGHT_COEFFICIENT = 1
 
 CROPPED_LINES = 245
 IMG_QUEUE_LENGTH = 3
+
+capture = Capture(DEFAULT_HOME)
 
 
 def main():
@@ -131,12 +139,18 @@ def start_run(stream, pwm, model, cam_output, speed, regression):
     start = time.time()
     pred_queue = deque(maxlen=4)
     img_queue = deque(maxlen=IMG_QUEUE_LENGTH)
-    for i, pict in enumerate(stream):
-        # hook avec l'injection de l'image, activer ou desactiver selon
-        # la commande
+    for index_capture, pict in enumerate(stream):
+        """
+        :type capture_index: int
+        """
+        try:
+            capture.save(rgb_data=pict, index_capture=index_capture)
+        except Exception as exception:
+            logger.warning('capture picture fails to save - index_capture={}', index_capture)
+
         try:
             img_queue.append(crop(pict))
-            if i % IMG_QUEUE_LENGTH == 0:
+            if index_capture % IMG_QUEUE_LENGTH == 0:
                 control_car(pwm, img_queue, model, speed,
                             regression, pred_queue)
             cam_output.truncate(0)
@@ -145,12 +159,14 @@ def start_run(stream, pwm, model, cam_output, speed, regression):
             cam_output.truncate(0)
             stop = time.time()
             elapsed_time = stop - start
-            logging.info("Image per second: {}".format(i / elapsed_time))
+            logging.info("Image per second: {}".format(index_capture / elapsed_time))
             time.sleep(2)
             break
         except Exception:
             stop_car(pwm)
             raise
+
+        index_capture += 1
 
 
 def crop(pict):

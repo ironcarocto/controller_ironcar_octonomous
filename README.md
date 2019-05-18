@@ -1,16 +1,22 @@
-# IRONCAR
+# Controller Ironcar Octonomous
+
+Octonomous est une voiture maintenue par Octo Technology pour l'ironcar.
+Ce programme est utilisé pour conduire la voiture en étabilissant
+des inférences à partir de la caméra et d'un modèle de deeplearning.
+
+[Ironcar](http://ironcar.org/) est un championnat de courses de voitures
+autonomes en modèle réduit !
 
 ## Run it !
 
-Launch the python script which will run the car:  
+Run the controller
  
 ```console
-$ python3 controller_ironcar/simple_command.py
+$ controller_ironcar
 ``` 
 
-This script allows for a few optionnal parameters. The full syntax is :
-```console
-$ python3 controller_ironcar/simple_command.py.py [-h] [--resolution RESOLUTION RESOLUTION]
+```bash
+controller_ironcar [-h] [--resolution RESOLUTION RESOLUTION]
                          [--model-path PATH] [--speed SPEED] [--preview]
                          [--regression] [--log-level LOGLEVEL]
 ```
@@ -37,6 +43,7 @@ Neat, but you probably don't want that in production.
 You will find a tutorial on google docs [here](https://docs.google.com/document/d/1jyRhlbmthMA_DuuulYnzUT38okIF_KFZH0a4hh8NCg8/edit?usp=sharing)  .
 
 ## Raspberry-pi Setup
+
 ### Easy setup with install.sh
 
 You can easily setup everything on the raspi using the `install.sh` bash. To do so, go on your raspi and do:
@@ -49,5 +56,14 @@ And that's it, you should be ready to go to the launching part!!
 
 ### Manual setup
 
-You can install the requirements from `requirements_raspi.txt` yourself, but you will need to install *tensorflow* as well as *nodejs* and *npm*. You will also need to install the node packages from `package.json`. 
-Last you will need to configure your camera and any other device to be enabled on the raspi.
+1. clone the repository
+
+```bash
+git clone https://github.com/ironcarocto/controller_ironcar_octonomous
+```
+
+2. install the package
+
+```bash
+pip3 install .[raspberry]
+```

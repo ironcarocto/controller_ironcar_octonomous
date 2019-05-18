@@ -19,6 +19,18 @@ class Capture:
         image_png.save(filepath)
 
 
+class StubCapture:
+    """
+    This class is used to create a stub object to ensure we DON'T
+    save images when the stream capture is disabled.
+    """
+    def __init__(self):
+        pass
+
+    def save(self, *args, **kwargs) -> None:
+        pass
+
+
 def build_capture(path: str) -> Capture:
     date = datetime.now()
     timestamp = (date - datetime(1970, 1, 1)).total_seconds()

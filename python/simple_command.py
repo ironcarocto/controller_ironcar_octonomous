@@ -9,7 +9,7 @@ import Adafruit_PCA9685
 import numpy as np
 import os
 
-from python.capture import Capture
+from python.capture import Capture, StubCapture
 
 logger = logging.getLogger('controller_ironcar')
 
@@ -25,6 +25,7 @@ DEFAULT_HOME = os.path.realpath(os.getcwd())
 DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123_nvidia.hdf5'
 DEFAULT_SPEED = 0.27
 DEFAULT_PREVIEW = False
+DEFAULT_CAPTURE = False
 DEFAULT_LOG_LEVEL = "INFO"
 DEFAULT_REGRESSION = False
 
@@ -34,8 +35,6 @@ STRAIGHT_COEFFICIENT = 1
 
 CROPPED_LINES = 245
 IMG_QUEUE_LENGTH = 3
-
-capture = Capture(DEFAULT_HOME)
 
 
 def main():
@@ -68,6 +67,9 @@ def load_args():
     parser.add_argument('--preview', '-p', dest='preview',
                         action='store_true', default=DEFAULT_PREVIEW,
                         help='if given, camera input will be displayed')
+    parser.add_argument('--capture-stream', '-c', dest='capture_stream',
+                        action='store_true', default=DEFAULT_CAPTURE,
+                        help='if given, camera input will be saved to filesystem')
     parser.add_argument('--regression', '-R', dest='regression',
                         action='store_true', default=DEFAULT_REGRESSION,
                         help='if given, '
@@ -92,12 +94,13 @@ def extract_values(args):
         "model_path": args.path,
         "speed": int(400 + 100 * args.speed),
         "preview": args.preview,
+        "capture_stream": args.capture_stream,
         "loglevel": args.loglevel,
         "regression": args.regression
     }
 
 
-def run(resolution, model_path, speed, preview, regression):
+def run(resolution, model_path, speed, preview, capture_stream, regression):
     from keras.models import load_model
 
     # Objects Initialisation
@@ -113,10 +116,12 @@ def run(resolution, model_path, speed, preview, regression):
     if preview:
         cam.start_preview()
 
+    capture = Capture(DEFAULT_HOME) if capture_stream else StubCapture()
+
     # initialiser un dossier stream avec un timestamp et un random
 
     timer(seconds=5)
-    start_run(stream, pwm, model, cam_output, speed, regression)
+    start_run(stream, pwm, model, cam_output, capture, speed, regression)
 
 
 def timer(seconds=5):
@@ -135,7 +140,7 @@ def init_cam(resolution=(250, 70)):
     return cam, cam_output, stream
 
 
-def start_run(stream, pwm, model, cam_output, speed, regression):
+def start_run(stream, pwm, model, cam_output, capture, speed, regression):
     start = time.time()
     pred_queue = deque(maxlen=4)
     img_queue = deque(maxlen=IMG_QUEUE_LENGTH)
@@ -144,9 +149,10 @@ def start_run(stream, pwm, model, cam_output, speed, regression):
         :type index_capture: int
         """
         try:
-            capture.save(rgb_data=pict, index_capture=index_capture)
+            capture.save(rgb_data=pict.array, index_capture=index_capture)
         except Exception as exception:
-            logger.warning('capture picture fails to save - index_capture={}', index_capture)
+            logger.warning('capture picture fails to save - index_capture={}'.format(index_capture))
+            logger.warning('exception={}'.format(exception))
 
         try:
             img_queue.append(crop(pict))

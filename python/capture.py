@@ -34,7 +34,7 @@ class StubCapture:
 def build_capture(path: str) -> Capture:
     date = datetime.now()
     timestamp = (date - datetime(1970, 1, 1)).total_seconds()
-    output_dir = os.path.join(path, str(timestamp))
+    output_dir = os.path.join(path, '{}'.format(timestamp))
     logger.info("create output_dir={output_dir}".format(output_dir=output_dir))
-    os.makedirs(output_dir, mode=555)
+    os.makedirs(output_dir, mode=777)
     return Capture(output_dir)

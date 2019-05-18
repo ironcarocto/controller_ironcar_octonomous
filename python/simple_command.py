@@ -9,7 +9,7 @@ import Adafruit_PCA9685
 import numpy as np
 import os
 
-from python.capture import Capture, StubCapture
+from python.capture import Capture, StubCapture, build_capture
 
 logger = logging.getLogger('controller_ironcar')
 
@@ -21,7 +21,7 @@ except ImportError:
           "picamera library")
 
 DEFAULT_RESOLUTION = 240, 176
-DEFAULT_HOME = os.path.realpath(os.getcwd())
+DEFAULT_HOME = os.path.realpath(os.path.join(os.getcwd(), 'outputs'))
 DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123_nvidia.hdf5'
 DEFAULT_SPEED = 0.27
 DEFAULT_PREVIEW = False
@@ -116,7 +116,7 @@ def run(resolution, model_path, speed, preview, capture_stream, regression):
     if preview:
         cam.start_preview()
 
-    capture = Capture(DEFAULT_HOME) if capture_stream else StubCapture()
+    capture = build_capture(DEFAULT_HOME) if capture_stream else StubCapture()
 
     # initialiser un dossier stream avec un timestamp et un random
 

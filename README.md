@@ -5,12 +5,12 @@
 Launch the python script which will run the car:  
  
 ```console
-$ python3 python/simple_command.py
+$ python3 controller_ironcar/simple_command.py
 ``` 
 
 This script allows for a few optionnal parameters. The full syntax is :
 ```console
-$ python3 python/simple_command.py.py [-h] [--resolution RESOLUTION RESOLUTION]
+$ python3 controller_ironcar/simple_command.py.py [-h] [--resolution RESOLUTION RESOLUTION]
                          [--model-path PATH] [--speed SPEED] [--preview]
                          [--regression] [--log-level LOGLEVEL]
 ```

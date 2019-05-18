@@ -16,7 +16,7 @@ setup(
     ],
     entry_points = {
         'console_scripts': [
-            'indexer = python.simple_command:main',
+            'controller_ironcar = controller_ironcar.simple_command:main',
         ],
     },
     install_requires = [

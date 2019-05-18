@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import logging
+
+SCRIPT_DIR = os.path.realpath(os.path.join(__file__, '..'))
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('command')
+
+
+def main(arguments):
+  os.chdir(SCRIPT_DIR)
+  _system('rm -f ironcar.png')
+  _system('virtualenv -p python3 venv')
+  _system('venv/bin/pip install -r requirements.txt')
+  _system('venv/bin/python convert.py')
+  _system('rm -rf venv')
+
+  if os.path.isfile('ironcar.png'):
+    print('CONVERT RGB TO PNG [OK] - view ironcar.png')
+  else:
+    print('CONVERT RGB TO PNG [KO]')
+
+# BOILERPLATE TO REPRODUCE -ex behavior of bash
+
+def _system(cmd, logged = True):
+  if logged:
+    print('$ {0}'.format(cmd))
+
+  output = os.system(cmd)
+
+  # see : https://stackoverflow.com/a/6466753
+  error_code = output >> 8
+  if error_code > 0:
+    raise OSError(error_code)
+
+if __name__ == '__main__':
+  try:
+    main(sys.argv[1:])
+  except (OSError) as e:
+    logger.critical(e)
+    sys.exit(e.args[0])

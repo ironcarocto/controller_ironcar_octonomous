@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ironcarocto/controller_ironcar_octonomous.svg?branch=master)](https://travis-ci.org/ironcarocto/controller_ironcar_octonomous)
+
 # Controller Ironcar Octonomous
 
 Octonomous est une voiture maintenue par Octo Technology pour l'ironcar.

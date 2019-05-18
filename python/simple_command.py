@@ -22,7 +22,7 @@ except ImportError:
 
 DEFAULT_RESOLUTION = 240, 176
 DEFAULT_HOME = os.path.realpath(os.getcwd())
-DEFAULT_MODEL_PATH = os.path.join(DEFAULT_HOME, 'autopilots/octo240x123_nvidia.hdf5')
+DEFAULT_MODEL_PATH = '/home/pi/ironcar/autopilots/octo240x123_nvidia.hdf5'
 DEFAULT_SPEED = 0.27
 DEFAULT_PREVIEW = False
 DEFAULT_LOG_LEVEL = "INFO"
@@ -141,7 +141,7 @@ def start_run(stream, pwm, model, cam_output, speed, regression):
     img_queue = deque(maxlen=IMG_QUEUE_LENGTH)
     for index_capture, pict in enumerate(stream):
         """
-        :type capture_index: int
+        :type index_capture: int
         """
         try:
             capture.save(rgb_data=pict, index_capture=index_capture)

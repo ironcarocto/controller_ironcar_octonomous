@@ -6,6 +6,8 @@ Octonomous est une voiture maintenue par Octo Technology pour l'ironcar.
 Ce programme est utilisé pour conduire la voiture en étabilissant
 des inférences à partir de la caméra et d'un modèle de deeplearning.
 
+![octonomous](docs/images/octonomous.jpg)
+
 [Ironcar](http://ironcar.org/) est un championnat de courses de voitures
 autonomes en modèle réduit !
 

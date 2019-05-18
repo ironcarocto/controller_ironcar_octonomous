@@ -8,9 +8,6 @@ __pycache__/
 # C extensions
 *.so
 
-# Image
-*.jpg
-
 # Distribution / packaging
 .Python
 env/

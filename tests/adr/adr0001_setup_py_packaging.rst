@@ -10,7 +10,6 @@ source distribution
 *******************
 
 * Requirement 1 : controller_ironcar code is embedded in the source distribution
-* Requirement 2 : default autopilot is available in the source distribution
 
 As user, I can setup the application with the command :
 

@@ -8,6 +8,8 @@ from os.path import isfile
 import numpy as np
 import os
 
+import sys
+
 from controller_ironcar.capture import build_capture
 from controller_ironcar import CONTROLLER_IRONCAR_PACKAGE_DIR
 from controller_ironcar.domain.car_controller import CarController
@@ -18,13 +20,12 @@ logger = logging.getLogger('controller_ironcar')
 try:
     import picamera.array
 except ImportError:
-    print("Can't import picamera, "
+    logger.warning("can't import picamera, "
           "you probably should be running this on the IronCar or install the "
           "picamera library")
 
 DEFAULT_RESOLUTION = 240, 176
 DEFAULT_HOME = os.path.realpath(os.path.join(os.getcwd(), 'outputs'))
-DEFAULT_MODEL_PATH = os.path.join(CONTROLLER_IRONCAR_PACKAGE_DIR, 'resources', 'autopilots', 'autopilot_500k.hdf5')
 DEFAULT_SPEED = 0.27
 DEFAULT_PREVIEW = False
 DEFAULT_CAPTURE = False
@@ -50,18 +51,21 @@ def main():
 
 def set_log_level(kwargs):
     log_level = getattr(logging, kwargs.pop("loglevel").upper())
-    logging.basicConfig(level=log_level)
+    logging.basicConfig(
+        format="[%(levelname)s] - %(message)s",
+        level=log_level
+    )
 
 
 def load_args():
-    parser = ArgumentParser(description='Control the OCTONOMOUS OCTOCAR.')
+    parser = ArgumentParser(description='control the OCTONOMOUS OCTOCAR.')
     parser.add_argument('--resolution', '-r', dest='resolution',
                         type=int, nargs=2,
                         default=DEFAULT_RESOLUTION,
                         help='the (width, height) resolution')
     parser.add_argument('--model-path', '-m', dest='path',
                         type=str,
-                        default=DEFAULT_MODEL_PATH,
+                        default=None,
                         help='absolute path to the model')
     parser.add_argument('--speed', '-s', dest='speed',
                         type=float, default=DEFAULT_SPEED,
@@ -82,12 +86,23 @@ def load_args():
                         help='the log level used (from CRITICAL to DEBUG)')
 
     args = parser.parse_args()
-    check_valid_args(args)
+    check_valid_args(parser, args)
     return extract_values(args)
 
 
-def check_valid_args(args):
-    assert isfile(args.path), "Model {} must exist".format(args.path)
+def check_valid_args(parser: ArgumentParser, args: object):
+    valid_arguments = True
+    if args.path is None:
+        valid_arguments = False
+        logger.error('--model-path argument is required')
+
+    if args.path is not None and not isfile(args.path):
+        valid_arguments = False
+        logger.error('model %s must exist' % args.path)
+
+    if not valid_arguments:
+        print(parser.format_help())
+        sys.exit(1)
 
 
 def extract_values(args):

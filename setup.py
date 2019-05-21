@@ -33,7 +33,6 @@ setup(
             'pytest'
         ],
         'rasbperry': [
-            'Adafruit_BNO055',
             'Adafruit_PCA9685',
             'picamera'
         ]
